@@ -21,6 +21,12 @@ spec:
         imagePullPolicy: Never
         ports:
         - containerPort: 8081
+        volumeMounts:
+        - { name: data, mountPath: /etc/config }
+      volumes:
+      - name: data
+        configMap:
+          name: demo-configmap
 
 ---
 
