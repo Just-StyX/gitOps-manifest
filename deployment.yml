@@ -22,9 +22,9 @@ spec:
         ports:
         - containerPort: 8081
         volumeMounts:
-        - { name: data, mountPath: /etc/config }
+        - { name: app-data, mountPath: /etc/config }
       volumes:
-      - name: data
+      - name: app-data
         configMap:
           name: demo-configmap
 
