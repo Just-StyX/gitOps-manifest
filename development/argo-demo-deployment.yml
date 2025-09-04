@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: argo-demo
-          image: ghcr.io/just-styx/argo-demo:latest
+          image: ghcr.io/just-styx/argo-demo:1.1
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
