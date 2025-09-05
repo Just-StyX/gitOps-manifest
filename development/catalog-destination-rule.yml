@@ -1,0 +1,14 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: argo-catalog-destination-rule
+  namespace: argo-demo-namespace
+spec:
+  host: catalog-service-service
+  subsets:
+    - name: version-gold
+      labels:
+        version: gold
+    - name: version-normal
+      labels:
+        version: normal

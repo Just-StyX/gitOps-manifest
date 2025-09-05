@@ -1,4 +1,4 @@
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1beta1
 kind: Gateway
 metadata:
   name: argo-demo-gateway
@@ -14,7 +14,7 @@ spec:
       hosts:
         - "*"
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: argo-demo-virtual-service
@@ -27,22 +27,32 @@ spec:
   http:
     - route:
         - destination:
-            host: argo-demo-service
+            host: argo-demo-service.argo-demo-namespace.svc.cluster.local
             port:
               number: 80
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: argo-catalog-virtual-service
   namespace: argo-demo-namespace
 spec:
   hosts:
-    - catalog-service-service
+    - catalog-service-service.argo-demo-namespace.svc.cluster.local # Use the FQDN
   http:
+    - match:
+        - headers:
+            x-dark-launch:
+              exact: "gold"
+      route:
+        - destination:
+            host: catalog-service-service.argo-demo-namespace.svc.cluster.local
+            subset: version-gold
     - route:
         - destination:
-            host: catalog-service-service
+            host: catalog-service-service.argo-demo-namespace.svc.cluster.local
+            subset: version-normal
       retries:
         attempts: 3
         perTryTimeout: 2s
+        retryOn: 5xx
