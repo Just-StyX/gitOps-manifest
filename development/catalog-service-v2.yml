@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: catalog-service-deployment
+  name: catalog-service-deployment-v2
   namespace: argo-demo-namespace
   labels:
     app: catalog-service-deployment
@@ -19,7 +19,7 @@ spec:
         version: gold
     spec:
       containers:
-        - name: catalog-service
+        - name: catalog-service-v2
           image: ghcr.io/just-styx/argo-catalog:1.2
           imagePullPolicy: Always
           ports:
