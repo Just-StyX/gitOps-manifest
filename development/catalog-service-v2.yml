@@ -25,15 +25,15 @@ spec:
           ports:
             - containerPort: 8082
 
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: catalog-service-service
-  namespace: argo-demo-namespace
-spec:
-  ports:
-    - port: 80
-      targetPort: 8082
-  selector:
-    app: catalog-service-deployment
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: catalog-service-service
+#  namespace: argo-demo-namespace
+#spec:
+#  ports:
+#    - port: 80
+#      targetPort: 8082
+#  selector:
+#    app: catalog-service-deployment
