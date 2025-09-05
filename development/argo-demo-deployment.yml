@@ -6,7 +6,7 @@ metadata:
   labels:
     app: argo-demo-deployment
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: argo-demo-deployment
