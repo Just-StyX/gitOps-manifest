@@ -1,3 +1,6 @@
+
+# no service is need for this since it will use catalog-service-service because of the DestinationRule
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:

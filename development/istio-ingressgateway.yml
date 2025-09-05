@@ -14,6 +14,9 @@ spec:
       hosts:
         - "*"
 ---
+
+# VirtualService for argo-demo-service
+
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -22,15 +25,18 @@ metadata:
 spec:
   hosts:
     - "*"
-  gateways:
+  gateways: # list of gateway for which virtual service will receive requests from
     - argo-demo-gateway
   http:
     - route:
-        - destination:
+        - destination: # Request will be passed on to this host.
             host: argo-demo-service.argo-demo-namespace.svc.cluster.local
             port:
               number: 80
 ---
+
+# VirtualService for catalog-service
+
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:

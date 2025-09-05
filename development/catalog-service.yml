@@ -26,6 +26,9 @@ spec:
             - containerPort: 8082
 
 ---
+
+# only one service is needed for catalog-service-deployment and catalog-service-deployment-v2
+
 apiVersion: v1
 kind: Service
 metadata:
