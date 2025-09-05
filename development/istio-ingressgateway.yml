@@ -30,3 +30,19 @@ spec:
             host: argo-demo-service
             port:
               number: 80
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: argo-catalog-virtual-service
+  namespace: argo-demo-namespace
+spec:
+  hosts:
+    - catalog-service-service
+  http:
+    - route:
+        - destination:
+            host: catalog-service-service
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
