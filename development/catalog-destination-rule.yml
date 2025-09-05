@@ -4,7 +4,7 @@ metadata:
   name: argo-catalog-destination-rule
   namespace: argo-demo-namespace
 spec:
-  host: catalog-service-service
+  host: catalog-service-service.argo-demo-namespace.svc.cluster.local
   subsets:
     - name: version-gold
       labels:
