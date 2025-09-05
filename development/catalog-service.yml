@@ -30,7 +30,7 @@ metadata:
   namespace: argo-demo-namespace
 spec:
   ports:
-    - port: 80
+    - port: 8082
       targetPort: 8082
   selector:
     app: catalog-service-deployment
