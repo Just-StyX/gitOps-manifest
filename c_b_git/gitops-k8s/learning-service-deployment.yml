@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: learning-service
+  namespace: chalk-board-namespace
+  labels:
+    app: learning-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: learning-service
+  template:
+    metadata:
+      labels:
+        app: learning-service
+    spec:
+      initContainers:
+        - name: wait-for-dependencies
+          image: busybox
+          command: ["sh", "-c", "until nc -vz -w 2 postgres 5432 && nc -vz -w 2 chalk-keycloak 7080; do echo 'Waiting for dependencies to be ready...'; sleep 5; done;"]
+      containers:
+        - name: learning-service
+          image: learning-service:1.0
+          restartPolicy: UnlessStopped
+          ports:
+            - containerPort: 8001
+              name: debug
+            - containerPort: 8081
+              name: http
+          envFrom:
+            - configMapRef:
+                name: chalkboard-shared-config
+            - secretRef:
+                name: chalkboard-secret
+          env:
+            # This tells Spring Boot where to find the logback file
+            - name: LOGGING_CONFIG
+              value: "file:/config/logback-spring.xml"
+          volumeMounts:
+            - name: services-files
+              mountPath: /workspace/services_files
+            - name: log-volume
+              mountPath: /workspace/logs
+            - name: log-config-volume
+              mountPath: /config/
+              readOnly: true
+            - name: learning-config-volume
+              mountPath: /config
+      volumes:
+        - name: services-files
+          hostPath:
+            path: /path/on/host/for/services_files # TODO: Change this
+            type: DirectoryOrCreate
+        - name: log-volume
+          hostPath:
+            path: /path/on/host/for/learning-service/logs # TODO: Change this
+            type: DirectoryOrCreate
+        - name: log-config-volume
+          configMap:
+            name: logback-config
+        - name: learning-config-volume
+          configMap:
+            name: learning-service-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: learning-service
+  namespace: chalk-board-namespace
+spec:
+  selector:
+    app: learning-service
+  ports:
+    - name: debug-port
+      protocol: TCP
+      port: 8001
+      targetPort: 8001
+    - name: http-port
+      protocol: TCP
+      port: 8081
+      targetPort: 8081
+  type: ClusterIP

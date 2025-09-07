@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: learning-ui
+  namespace: chalk-board-namespace
+  labels:
+    app: learning-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: learning-ui
+  template:
+    metadata:
+      labels:
+        app: learning-ui
+    spec:
+      containers:
+        - name: learning-ui
+          image: ui-service:1.0 # TODO: change this to use docker hub
+          restartPolicy: UnlessStopped
+          ports:
+            - containerPort: 8003
+              name: debug
+            - containerPort: 8083
+              name: http
+          envFrom:
+            - configMapRef:
+                name: chalkboard-shared-config
+            - secretRef:
+                name: chalkboard-secret
+          env:
+            - name: BPL_DEBUG_ENABLED
+              value: "true"
+            - name: BPL_DEBUG_PORT
+              value: "8003"
+            - name: LOGGING_CONFIG
+              value: "file:/config/logback-spring.xml"
+          volumeMounts:
+            - name: log-volume
+              mountPath: /workspace/logs
+            - name: log-config-volume
+              mountPath: /config/
+              readOnly: true
+            - name: learning-ui-config-volume
+              mountPath: /config
+      volumes:
+        - name: log-volume
+          hostPath:
+            path: /path/on/host/for/learning-ui/logs # TODO: Change this
+            type: DirectoryOrCreate
+        - name: log-config-volume
+          configMap:
+            name: logback-config
+        - name: learning-ui-config-volume
+          configMap:
+            name: learning-ui-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: learning-ui-service
+  namespace: chalk-board-namespace
+spec:
+  selector:
+    app: learning-ui
+  ports:
+    - name: debug-port
+      protocol: TCP
+      port: 8003
+      targetPort: 8003
+    - name: http-port
+      protocol: TCP
+      port: 8083
+      targetPort: 8083
+  type: ClusterIP

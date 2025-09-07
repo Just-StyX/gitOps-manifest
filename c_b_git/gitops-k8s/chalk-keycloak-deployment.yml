@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chalk-keycloak
+  namespace: chalk-board-namespace
+spec:
+  selector:
+    matchLabels:
+      app: chalk-keycloak
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: chalk-keycloak
+    spec:
+      containers:
+        - name: chalk-keycloak
+          image: quay.io/keycloak/keycloak:latest
+          args: ["start-dev", "--http-port=7080"]
+          envFrom:
+            - configMapRef:
+                name: chalkboard-shared-config # Inject all variables from the ConfigMap
+          ports:
+            - containerPort: 7080
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 7080
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command:
+                - curl
+                - -f
+                - http://localhost:7080/health/live
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3
+          # Note: The healthcheck in the original request uses a different port and path (localhost:8080).
+          # The readiness probe here uses port 7080 to match the Keycloak config.
+          # You should adjust your Keycloak config or the probe path if necessary.
+
+---
+# Kubernetes Service to expose the Keycloak deployment
+apiVersion: v1
+kind: Service
+metadata:
+  name: chalk-keycloak
+  namespace: chalk-board-namespace
+spec:
+  selector:
+    app: chalk-keycloak
+  ports:
+    - protocol: TCP
+      port: 7080
+      targetPort: 7080
+  type: ClusterIP # Internal service access

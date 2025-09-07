@@ -1,0 +1,250 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-config
+  namespace: chalk-board-namespace
+data:
+  application.yml: |
+    spring:
+      application:
+        name: gateway-service
+      lifecycle:
+        timeout-per-shutdown-phase: 15s
+      cloud:
+        gateway:
+          default-filters:
+            - TokenRelay
+            - SaveSession
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter:
+                  replenishRate: 10
+                  burstCapacity: 20
+                  requestedTokens: 1
+            - name: Retry
+              args:
+                retries: 3
+                methods: GET
+                series: SERVER_ERROR
+                exception: java.io.IOException, java.util.concurrent.TimeoutException
+                backoff:
+                  firstBackoff: 50ms
+                  maxBackoff: 500ms
+                  factor: 2
+                  basedOnPreviousValue: false
+          server:
+            webflux:
+              httpclient:
+                connect-timeout: 2000
+                response-timeout: 5s
+                pool:
+                  type: elastic
+                  max-idle-time: 15s
+                  max-life-time: 60s
+              routes:
+                - id: learning-ui-route
+                  uri: ${SERVER_SIDE_URL:http://learning-ui:8083}
+                  predicates:
+                    - Path=/apis-ui/**, /css/**, /js/**, /img/**
+                  filters:
+                    - RewritePath=/apis-ui/?(?<segment>.*), /$\{segment}
+                    - TokenRelay=
+
+                - id: learning-service-route
+                  uri: ${LEARNING_SERVICE_URL:http://learning-service:8081}
+                  predicates:
+                    - Path=/apis-ln/**, /css/**, /js/**, /img/**
+                  filters:
+                    - TokenRelay=
+                    - RewritePath=/apis-ln/?(?<segment>.*), /$\{segment}
+                    - name: CircuitBreaker
+                      args:
+                        name: learningServiceCircuitBreaker
+                        fallbackUri: forward:/learning-service-fallback
+
+                - id: grafana-api-route
+                  uri: ${GRAFANA_SERVICE_URL:http://grafana:3000}
+                  predicates:
+                    - Path=/api/**
+                  filters:
+                    - TokenRelay=
+                    - RemoveRequestHeader=Authorization
+                    - RemoveRequestHeader=Cookie
+                    - name: CircuitBreaker
+                      args:
+                        name: grafanaCircuitBreaker
+                        fallbackUri: forward:/grafana-fallback
+
+                - id: grafana-assets-route
+                  uri: ${GRAFANA_SERVICE_URL:http://grafana:3000}
+                  predicates:
+                    - Path=/public/**, /avatar/**, /fonts/**, /static/**
+                  filters:
+                    - TokenRelay=
+                    - RemoveRequestHeader=Authorization
+                    - RemoveRequestHeader=Cookie
+                    - name: CircuitBreaker
+                      args:
+                        name: grafanaCircuitBreaker
+                        fallbackUri: forward:/grafana-fallback
+
+                - id: grafana-auth-route
+                  uri: ${GRAFANA_SERVICE_URL:http://grafana:3000}
+                  predicates:
+                    - Path=/observation/login/**, /observation/logout/**, /observation/metrics/**
+                  filters:
+                    - TokenRelay=
+                    - RemoveRequestHeader=Authorization
+                    - RemoveRequestHeader=Cookie
+                    - RewritePath=/observation/?(?<segment>.*), /$\{segment}
+                    - name: CircuitBreaker
+                      args:
+                        name: grafanaCircuitBreaker
+                        fallbackUri: forward:/grafana-fallback
+
+                - id: grafana-dashboard-route
+                  uri: ${GRAFANA_SERVICE_URL:http://grafana:3000}
+                  predicates:
+                    - Path=/grafana/**, /dashboard/**, /d/**, /api/datasources/**, /api/dashboards/**
+                  filters:
+                    - TokenRelay=
+                    - RewritePath=/grafana/?(?<segment>.*), /$\{segment}
+                    - RemoveRequestHeader=Authorization
+                    - RemoveRequestHeader=Cookie
+                    - name: CircuitBreaker
+                      args:
+                        name: grafanaCircuitBreaker
+                        fallbackUri: forward:/grafana-fallback
+
+      data:
+        redis:
+          connect-timeout: 2s
+          host: redis-service
+          port: 6379
+          # This value should be handled by a Secret
+          password: ${REDIS_PASSWORD}
+          timeout: 1s
+      session:
+        store-type: redis
+        timeout: 10m
+        redis:
+          namespace: edge:redis
+      security:
+        oauth2:
+          resourceserver:
+            jwt:
+              issuer-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI:http://chalk-keycloak:7080/realms/chalk-board}
+          client:
+            registration:
+              keycloak:
+                client-name: ${AUTH_CLIENT_NAME}
+                client-id: ${AUTH_CLIENT_ID}
+                # This value should be handled by a Secret
+                client-secret: ${AUTH_CLIENT_SECRET}
+                authorization-grant-type: ${AUTH_CLIENT_AUTHORIZATION_GRANT_TYPE}
+                scope: openid,roles
+                redirect-uri: ${AUTH_CLIENT_REDIRECT_URI}
+            provider:
+              keycloak:
+                issuer-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI:http://chalk-keycloak:7080/realms/chalk-board}
+    resilience4j:
+      circuitbreaker:
+        configs:
+          default:
+            slidingWindowSize: 20
+            permittedNumberOfCallsInHalfOpenState: 5
+            failureRateThreshold: 50
+            waitDurationInOpenState: 15000
+        instances:
+          grafanaCircuitBreaker:
+            baseConfig: default
+            slidingWindowSize: 10
+            failureRateThreshold: 60
+            waitDurationInOpenState: 10000
+            permittedNumberOfCallsInHalfOpenState: 3
+      timelimiter:
+        configs:
+          default:
+            timeoutDuration: 5s
+
+    server:
+      port: 8082
+      shutdown: graceful
+      netty:
+        connection-timeout: 2s
+        idle-timeout: 15s
+      forwarded-headers-strategy: framework
+
+    logging:
+      group:
+        circuitbreaker: io.github.resilience4j,org.springframework.cloud.resilience4j,org.springframework.cloud.circuitbreaker
+      level:
+        circuitbreaker: info
+        org.springframework.cloud.gateway: DEBUG
+      pattern:
+        level: ${LOGGING_LEVEL_PATTERN_GW:"%5p [${spring.application.name},%X{trace_id},%X{span_id}]"}
+
+    management:
+      endpoints:
+        web:
+          base-path: ${MANAGEMENT_WEB_ENDPOINT_BASE_GW:/gateway-service-management}
+          exposure:
+            include: ${MANAGEMENT_ENDPOINT_INCLUDE:health,info,metrics,prometheus,refresh}
+      endpoint:
+        health:
+          show-details: when_authorized
+          probes.enabled: true
+      info:
+        java.enabled: true
+        os.enabled: true
+        env.enabled: true
+        git.mode: full
+
+      otlp:
+        metrics:
+          export:
+            url: ${OTEL_COLLECTOR_METRICS_URL:http://otel-collector:4318/v1/metrics}
+            step: 10s
+        tracing:
+          endpoint: ${OTEL_COLLECTOR_TRACES_URL:http://otel-collector:4318/v1/traces}
+
+      tracing:
+        sampling:
+          probability: 1.0
+        enabled: true
+
+      metrics:
+        tags:
+          department: ${SERVICE_DEPARTMENT_GW:gateway-service}
+          team: ${SERVICE_TEAM_GW:gateway-service-team}
+          service: ${spring.application.name}
+          env: ${SERVICE_ENVIRONMENT:development}
+          region: ${SERVICE_REGION:europe-west1}
+          instance.id: ${SERVICE_INSTANCE_ID:instances}
+
+        distribution:
+          percentiles:
+            http.server.requests: 0.99, 0.95, 0.9, 0.7, 0.5
+            file.upload.metric: 0.99, 0.95, 0.9, 0.7, 0.5
+            create.course.metric: 0.99, 0.95, 0.9, 0.7, 0.5
+            file.download.metric: 0.99, 0.95, 0.9, 0.7, 0.5
+          percentiles-histogram:
+            http.server.requests: true
+            file.upload.metric: true
+            create.course.metric: true
+            file.download.metric: true
+          minimum-expected-value:
+            file.upload.metric: 100
+            create.course.metric: 100
+            http.server.requests: 100ms
+            file.download.metric: 100ms
+          maximum-expected-value:
+            file.upload.metric: 10000
+            create.course.metric: 10s
+            file.download.metric: 10s
+            http.server.requests: 10s
+          slo:
+            file.upload.metric: 300,500,1000,2000
+            create.course.metric: 300,500,1000,2000
+            file.download.metric: 300,500,1000,2000
+            http.server.requests: 300ms,500ms,1s,2s

@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: db-backup-cronjob
+  namespace: chalk-board-namespace
+spec:
+  # Schedule: "0 2 * * *" means every day at 2:00 AM
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          volumes:
+            - name: backup-script-volume
+              configMap:
+                name: db-backup-script
+            - name: backups-volume
+              persistentVolumeClaim:
+                claimName: db-backup-pvc # Requires a PersistentVolumeClaim
+          initContainers:
+            - name: init-backup-dir
+              image: alpine:latest
+              command: ["sh", "-c", "mkdir -p /backups && chmod 777 /backups"]
+              volumeMounts:
+                - name: backups-volume
+                  mountPath: /backups
+          containers:
+            - name: db-backup
+              image: postgres:16-alpine
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: chalkboard-secret
+                      key: PGPASSWORD
+              volumeMounts:
+                - name: backup-script-volume
+                  mountPath: /etc/scripts
+                - name: backups-volume
+                  mountPath: /backups
+              command: ["/bin/sh", "/etc/scripts/backup.sh"]
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-backup-pvc
+  namespace: chalk-board-namespace
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi # Adjust storage size as needed

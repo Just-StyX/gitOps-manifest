@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loki
+  namespace: chalk-board-namespace
+  labels:
+    app: loki
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loki
+  template:
+    metadata:
+      labels:
+        app: loki
+    spec:
+      containers:
+        - name: loki
+          image: grafana/loki:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3100
+              name: http-metrics
+          command:
+            - "/usr/bin/loki"
+            - "-config.file=/etc/loki/local-config.yaml"
+          volumeMounts:
+            - name: loki-config-volume
+              mountPath: /etc/loki
+          readinessProbe:
+            exec:
+              command:
+                - wget
+                - --quiet
+                - --tries=1
+                - --output-document=-
+                - http://localhost:3100/ready
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            failureThreshold: 10
+      volumes:
+        - name: loki-config-volume
+          configMap:
+            name: loki-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki
+  namespace: chalk-board-namespace
+  labels:
+    app: loki
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3100
+      targetPort: http-metrics
+      protocol: TCP
+      name: http-metrics
+  selector:
+    app: loki

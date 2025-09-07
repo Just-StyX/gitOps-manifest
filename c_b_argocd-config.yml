@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: chalk-board-application
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Just-StyX/gitOps-manifest.git
+    targetRevision: HEAD
+    path: c_b_git/gitops-k8s # look in the development folder
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: chalk-board-namespace # namespace for deployment
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

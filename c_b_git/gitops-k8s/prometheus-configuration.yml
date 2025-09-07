@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: chalk-board-namespace
+data:
+  prometheus.yml: |
+    # Paste the content of your prometheus.yml file here
+    global:
+      scrape_interval: 10s
+      evaluation_interval: 10s
+
+    rule_files:
+      - "alert_rules.yml"
+
+    scrape_configs:
+      - job_name: "otel-collector"
+        static_configs:
+          - targets: ['otel-collector:8889']
+
+      - job_name: 'learning-service'
+        static_configs:
+          - targets: [ 'learning-service:8081' ]
+        metrics_path: '/learning-service-management/prometheus'
+        scrape_interval: 10s
+
+      - job_name: 'gateway-service'
+        static_configs:
+          - targets: [ 'gateway-service:8082' ]
+        metrics_path: '/gateway-service-management/prometheus'
+        scrape_interval: 10s
+
+      - job_name: 'learning-ui'
+        static_configs:
+          - targets: [ 'learning-ui:8083' ]
+        metrics_path: '/learning-ui-management/prometheus'
+        scrape_interval: 10s
+
+      - job_name: 'postgres'
+        static_configs:
+          - targets: [ 'postgres-exporter:9187' ]
+
+      - job_name: 'redis'
+        static_configs:
+          - targets: [ 'redis-exporter:9121' ]
+
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+                - alertmanager:9093

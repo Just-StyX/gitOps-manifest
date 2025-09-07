@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-backup-script
+  namespace: chalk-board-namespace
+data:
+  backup.sh: |
+    #!/bin/sh
+    set -e
+    
+    BACKUP_DIR="/backups"
+    
+    # Create the backups directory if it doesn't exist
+    mkdir -p "${BACKUP_DIR}"
+    
+    # Perform the database dump
+    pg_dump -h postgres -U username -d chalk_board > "${BACKUP_DIR}/backup_$(date +%Y%m%d_%H%M%S).sql"
+    
+    # Delete backups older than 7 days
+    find "${BACKUP_DIR}" -name 'backup_*.sql' -mtime +7 -delete

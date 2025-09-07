@@ -1,0 +1,112 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: learning-ui-config
+  namespace: chalk-board-namespace
+data:
+  application.yml: |
+    spring:
+      application:
+        name: ui-service
+      datasource:
+        url: jdbc:postgresql://postgres:5432/chalk_ui
+        # These sensitive values should be handled by a Secret
+        password: ${CHALK_BOARD_DATABASE_PASSWORD}
+        username: ${CHALK_BOARD_DATABASE_USERNAME}
+      jpa:
+        hibernate:
+          ddl-auto: create
+        database: postgresql
+        database-platform: org.hibernate.dialect.PostgreSQLDialect
+        show-sql: false
+        properties:
+          hibernate:
+            format_sql: false
+            boot:
+              allow_jdbc_metadata_access: false
+      thymeleaf:
+        template-resolver-order: 0
+      security:
+        oauth2:
+          resourceserver:
+            jwt:
+              issuer-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI:http://chalk-keycloak:7080/realms/chalk-board}
+
+    server:
+      port: 8083
+      forward-headers-strategy: NATIVE
+
+    app:
+      services:
+        learning-service-base: ${LEARNING_SERVICE_URL:http://learning-service:8081}
+
+    logging:
+      level:
+        org.springframework.cloud.gateway: DEBUG
+      pattern:
+        level: ${LOGGING_LEVEL_PATTERN_UI:"%5p [${spring.application.name},%X{trace_id},%X{span_id}]"}
+
+    management:
+      endpoints:
+        web:
+          base-path: ${MANAGEMENT_WEB_ENDPOINT_BASE_UI:/learning-ui-management}
+          exposure:
+            include: ${MANAGEMENT_ENDPOINT_INCLUDE:health,info,metrics,prometheus,refresh}
+      endpoint:
+        health:
+          show-details: always
+          probes.enabled: true
+      info:
+        java.enabled: true
+        os.enabled: true
+        env.enabled: true
+        git.mode: full
+
+      otlp:
+        metrics:
+          export:
+            url: ${OTEL_COLLECTOR_METRICS_URL:http://otel-collector:4318/v1/metrics}
+            step: 10s
+        tracing:
+          endpoint: ${OTEL_COLLECTOR_TRACES_URL:http://otel-collector:4318/v1/traces}
+
+      tracing:
+        sampling:
+          probability: 1.0
+        enabled: true
+
+      metrics:
+        tags:
+          department: ${SERVICE_DEPARTMENT_UI:learning-ui}
+          team: ${SERVICE_TEAM_UI:learning-ui-team}
+          service: ${spring.application.name}
+          env: ${SERVICE_ENVIRONMENT:development}
+          region: ${SERVICE_REGION:europe-west1}
+          instance.id: ${SERVICE_INSTANCE_ID:instances}
+
+        distribution:
+          percentiles:
+            http.server.requests: 0.99, 0.95, 0.9, 0.7, 0.5
+            file.upload.metric: 0.99, 0.95, 0.9, 0.7, 0.5
+            create.course.metric: 0.99, 0.95, 0.9, 0.7, 0.5
+            file.download.metric: 0.99, 0.95, 0.9, 0.7, 0.5
+          percentiles-histogram:
+            http.server.requests: true
+            file.upload.metric: true
+            create.course.metric: true
+            file.download.metric: true
+          minimum-expected-value:
+            file.upload.metric: 100
+            create.course.metric: 100
+            http.server.requests: 100ms
+            file.download.metric: 100ms
+          maximum-expected-value:
+            file.upload.metric: 10000
+            create.course.metric: 10s
+            file.download.metric: 10s
+            http.server.requests: 10s
+          slo:
+            file.upload.metric: 300,500,1000,2000
+            create.course.metric: 300,500,1000,2000
+            file.download.metric: 300,500,1000,2000
+            http.server.requests: 300ms,500ms,1s,2s
