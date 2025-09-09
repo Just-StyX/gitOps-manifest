@@ -22,7 +22,7 @@ spec:
           command: ["sh", "-c", "until nc -vz -w 2 chalk-keycloak 7080 && nc -vz -w 2 redis-service 6379 && nc -vz -w 2 learning-ui-service 8083; do echo 'Waiting for services to be ready...'; sleep 5; done;"]
       containers:
         - name: gateway-service
-          image: docker.io/jay717/gateway-service:1.0
+          image: jay717/gateway-service:1.0
           restartPolicy: UnlessStopped
           ports:
             - containerPort: 8002

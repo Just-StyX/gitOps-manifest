@@ -21,7 +21,7 @@ spec:
           command: ["sh", "-c", "until nc -vz -w 2 postgres 5432 && nc -vz -w 2 chalk-keycloak 7080; do echo 'Waiting for dependencies to be ready...'; sleep 5; done;"]
       containers:
         - name: learning-service
-          image: docker.io/jay717/learning-service:1.0
+          image: jay717/learning-service:1.0
           restartPolicy: UnlessStopped
           ports:
             - containerPort: 8001

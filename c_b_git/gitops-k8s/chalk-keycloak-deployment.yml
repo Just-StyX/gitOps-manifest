@@ -22,22 +22,22 @@ spec:
                 name: chalkboard-shared-config # Inject all variables from the ConfigMap
           ports:
             - containerPort: 7080
-          readinessProbe:
-            httpGet:
-              path: /health/ready
-              port: 7080
-            initialDelaySeconds: 30
-            periodSeconds: 5
-            failureThreshold: 3
-          livenessProbe:
-            exec:
-              command:
-                - curl
-                - -f
-                - http://localhost:7080/health/live
-            initialDelaySeconds: 60
-            periodSeconds: 30
-            failureThreshold: 3
+#          readinessProbe:
+#            httpGet:
+#              path: /health/ready
+#              port: 7080
+#            initialDelaySeconds: 30
+#            periodSeconds: 5
+#            failureThreshold: 3
+#          livenessProbe:
+#            exec:
+#              command:
+#                - curl
+#                - -f
+#                - http://localhost:7080/health/live
+#            initialDelaySeconds: 60
+#            periodSeconds: 30
+#            failureThreshold: 3
           # Note: The healthcheck in the original request uses a different port and path (localhost:8080).
           # The readiness probe here uses port 7080 to match the Keycloak config.
           # You should adjust your Keycloak config or the probe path if necessary.

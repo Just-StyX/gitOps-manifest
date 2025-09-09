@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: learning-ui
-          image: docker.io/jay717/ui-service:1.0
+          image: jay717/ui-service:1.0
           restartPolicy: UnlessStopped
           ports:
             - containerPort: 8003
