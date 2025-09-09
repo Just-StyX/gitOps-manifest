@@ -22,6 +22,7 @@ spec:
       containers:
         - name: learning-service
           image: jay717/learning-service:1.0
+          imagePullPolicy: Always
           restartPolicy: UnlessStopped
           ports:
             - containerPort: 8001

@@ -23,6 +23,7 @@ spec:
       containers:
         - name: gateway-service
           image: jay717/gateway-service:1.0
+          imagePullPolicy: Always
           restartPolicy: UnlessStopped
           ports:
             - containerPort: 8002

@@ -18,6 +18,7 @@ spec:
       containers:
         - name: learning-ui
           image: jay717/ui-service:1.0
+          imagePullPolicy: Always
           restartPolicy: UnlessStopped
           ports:
             - containerPort: 8003
