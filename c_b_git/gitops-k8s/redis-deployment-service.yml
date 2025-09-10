@@ -5,7 +5,7 @@ metadata:
   namespace: chalk-board-namespace
 spec:
   serviceName: redis-stateful
-  replicas: 6
+  replicas: 3
   selector:
     matchLabels:
       app: redis-stateful
@@ -14,27 +14,43 @@ spec:
       labels:
         app: redis-stateful
     spec:
+      securityContext:
+        fsGroup: 999
+      initContainers:
+        - name: init-redis-data-dir
+          image: busybox:latest
+          command: ["chown", "-R", "999:999", "/data"]
+          volumeMounts:
+            - name: data
+              mountPath: /data
       containers:
         - name: redis-stateful
-          image: redis:latest
+          image: redis:7-alpine
           ports:
             - containerPort: 6379
               name: client
             - containerPort: 16379
               name: gossip
-          command: ["/conf/update-node.sh", "redis-server", "/conf/redis.conf"]
-          env:
-            - name: POD_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
+          command: ["/conf/update-node.sh"]
           volumeMounts:
             - name: conf
               mountPath: /conf
-              readOnly: false
             - name: data
               mountPath: /data
-              readOnly: false
+          livenessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
       volumes:
         - name: conf
           configMap:
@@ -45,7 +61,7 @@ spec:
         name: data
       spec:
         accessModes: [ "ReadWriteOnce" ]
-        storageClassName: "hostpath"
+        storageClassName: "standard"
         resources:
           requests:
             storage: 50Mi
@@ -67,88 +83,158 @@ spec:
   selector:
     app: redis-stateful
 
+
 #apiVersion: apps/v1
 #kind: StatefulSet
 #metadata:
 #  name: redis-stateful
 #  namespace: chalk-board-namespace
-#  labels:
-#    app: redis
 #spec:
+#  serviceName: redis-stateful
+#  replicas: 6
 #  selector:
 #    matchLabels:
-#      app: redis
-#  serviceName: redis-service
-#  persistentVolumeClaimRetentionPolicy:
-#    whenDeleted: Retain
-#    whenScaled: Delete
-#  replicas: 1
+#      app: redis-stateful
 #  template:
 #    metadata:
 #      labels:
-#        app: redis
+#        app: redis-stateful
 #    spec:
-#      # Optional: Use an initContainer to set correct permissions for the Redis user
-#      initContainers:
-#        - name: init-redis-data-dir
-#          image: busybox:latest
-#          command: ["chown", "-R", "redis:redis", "/data"]
-#          volumeMounts:
-#            - name: redis-data
-#              mountPath: /data
 #      containers:
-#        - name: redis
-#          image: redis:7-alpine
-#          imagePullPolicy: IfNotPresent
+#        - name: redis-stateful
+#          image: redis:latest
 #          ports:
 #            - containerPort: 6379
-#              name: redis
+#              name: client
+#            - containerPort: 16379
+#              name: gossip
+#          command: ["/conf/update-node.sh", "redis-server", "/conf/redis.conf"]
+#          env:
+#            - name: POD_IP
+#              valueFrom:
+#                fieldRef:
+#                  fieldPath: status.podIP
 #          volumeMounts:
-#            - name: redis-data
-#              mountPath: /data # Correct mount path for Redis data
-#          # Direct arguments from your original request
-#          command: ["redis-server"]
-#          args: [
-#            "--appendonly", "yes",
-#            "--maxmemory", "256mb",
-#            "--maxmemory-policy", "allkeys-lru"
-#          ]
-#          # Health checks from your original request
-#          livenessProbe:
-#            exec:
-#              command: ["redis-cli", "ping"]
-#            initialDelaySeconds: 10
-#            periodSeconds: 10
-#            timeoutSeconds: 5
-#            retries: 3
-#          readinessProbe:
-#            exec:
-#              command: ["redis-cli", "ping"]
-#            initialDelaySeconds: 5
-#            periodSeconds: 5
-#            timeoutSeconds: 3
-#            retries: 3
+#            - name: conf
+#              mountPath: /conf
+#              readOnly: false
+#            - name: data
+#              mountPath: /data
+#              readOnly: false
+#      volumes:
+#        - name: conf
+#          configMap:
+#            name: redis-config
+#            defaultMode: 0755
 #  volumeClaimTemplates:
 #    - metadata:
-#        name: redis-data
+#        name: data
 #      spec:
 #        accessModes: [ "ReadWriteOnce" ]
-#        storageClassName: "standard"
+#        storageClassName: "hostpath"
 #        resources:
 #          requests:
-#            storage: 1Gi
+#            storage: 50Mi
 #---
 #apiVersion: v1
 #kind: Service
 #metadata:
 #  name: redis
 #  namespace: chalk-board-namespace
-#  labels:
-#    app: redis
 #spec:
+#  clusterIP: None
 #  ports:
 #    - port: 6379
-#      name: redis
-#  clusterIP: None
+#      targetPort: 6379
+#      name: client
+#    - port: 16379
+#      targetPort: 16379
+#      name: gossip
 #  selector:
-#    app: redis
+#    app: redis-stateful
+#
+##apiVersion: apps/v1
+##kind: StatefulSet
+##metadata:
+##  name: redis-stateful
+##  namespace: chalk-board-namespace
+##  labels:
+##    app: redis
+##spec:
+##  selector:
+##    matchLabels:
+##      app: redis
+##  serviceName: redis-service
+##  persistentVolumeClaimRetentionPolicy:
+##    whenDeleted: Retain
+##    whenScaled: Delete
+##  replicas: 1
+##  template:
+##    metadata:
+##      labels:
+##        app: redis
+##    spec:
+##      # Optional: Use an initContainer to set correct permissions for the Redis user
+##      initContainers:
+##        - name: init-redis-data-dir
+##          image: busybox:latest
+##          command: ["chown", "-R", "redis:redis", "/data"]
+##          volumeMounts:
+##            - name: redis-data
+##              mountPath: /data
+##      containers:
+##        - name: redis
+##          image: redis:7-alpine
+##          imagePullPolicy: IfNotPresent
+##          ports:
+##            - containerPort: 6379
+##              name: redis
+##          volumeMounts:
+##            - name: redis-data
+##              mountPath: /data # Correct mount path for Redis data
+##          # Direct arguments from your original request
+##          command: ["redis-server"]
+##          args: [
+##            "--appendonly", "yes",
+##            "--maxmemory", "256mb",
+##            "--maxmemory-policy", "allkeys-lru"
+##          ]
+##          # Health checks from your original request
+##          livenessProbe:
+##            exec:
+##              command: ["redis-cli", "ping"]
+##            initialDelaySeconds: 10
+##            periodSeconds: 10
+##            timeoutSeconds: 5
+##            retries: 3
+##          readinessProbe:
+##            exec:
+##              command: ["redis-cli", "ping"]
+##            initialDelaySeconds: 5
+##            periodSeconds: 5
+##            timeoutSeconds: 3
+##            retries: 3
+##  volumeClaimTemplates:
+##    - metadata:
+##        name: redis-data
+##      spec:
+##        accessModes: [ "ReadWriteOnce" ]
+##        storageClassName: "standard"
+##        resources:
+##          requests:
+##            storage: 1Gi
+##---
+##apiVersion: v1
+##kind: Service
+##metadata:
+##  name: redis
+##  namespace: chalk-board-namespace
+##  labels:
+##    app: redis
+##spec:
+##  ports:
+##    - port: 6379
+##      name: redis
+##  clusterIP: None
+##  selector:
+##    app: redis

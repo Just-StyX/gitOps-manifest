@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: redis-cluster-init
+  namespace: chalk-board-namespace
+spec:
+  template:
+    metadata:
+      labels:
+        app: redis-cluster-init
+    spec:
+      containers:
+        - name: redis-cluster-init
+          image: redis:7-alpine
+          command:
+            - "redis-cli"
+            - "--cluster"
+            - "create"
+            - "redis-stateful-0.redis-stateful:6379"
+            - "redis-stateful-1.redis-stateful:6379"
+            - "redis-stateful-2.redis-stateful:6379"
+            - "redis-stateful-3.redis-stateful:6379"
+            - "redis-stateful-4.redis-stateful:6379"
+            - "redis-stateful-5.redis-stateful:6379"
+            - "--cluster-replicas"
+            - "1"
+      restartPolicy: OnFailure
