@@ -21,24 +21,24 @@ data:
         loglevel: debug
 
       loki:
-        endpoint: "http://loki/loki/api/v1/push"
+        endpoint: "http://loki:3100/loki/api/v1/push"
 
       prometheus:
-        endpoint: "prometheus"
+        endpoint: "0.0.0.0:8889"
         const_labels:
           label1: value1
 
       otlp:
-        endpoint: "tempo" # tor Tempo
+        endpoint: "tempo:4317" # tor Tempo
         tls:
           insecure: true
 
       zipkin:
-        endpoint: "http://zipkin-all-in-one/api/v2/spans"
+        endpoint: "http://zipkin-all-in-one:9411/api/v2/spans"
         format: proto
 
       jaeger:
-        endpoint: jaeger-all-in-one
+        endpoint: jaeger-all-in-one:14250
         tls:
           insecure: true
 
