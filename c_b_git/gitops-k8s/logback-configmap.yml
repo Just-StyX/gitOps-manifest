@@ -4,7 +4,7 @@ metadata:
   name: logback-config
   namespace: chalk-board-namespace
 data:
-  logback-spring.xml: |
+  logback-spring.xml: |+
     <?xml version="1.0" encoding="UTF-8"?>
     <configuration>
         <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
