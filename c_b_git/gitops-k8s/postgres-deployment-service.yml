@@ -19,14 +19,14 @@ spec:
       labels:
         app: postgres
     spec:
-      # Add fsGroup to set correct group ownership for the mounted volume
+      # Correct fsGroup to match the postgres user's GID
       securityContext:
-        fsGroup: 0700
-      # Use an initContainer to fix volume permissions before PostgreSQL starts
+        fsGroup: 999
+      # Use an initContainer to fix volume permissions on the subdirectory
       initContainers:
         - name: fix-perms
           image: busybox:1.36
-          command: ["sh", "-c", "chown -R 999:999 /var/lib/postgresql/data"]
+          command: ["sh", "-c", "mkdir -p /var/lib/postgresql/data/pgdata && chown -R 999:999 /var/lib/postgresql/data"]
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data
@@ -34,7 +34,6 @@ spec:
         - name: postgres
           image: postgres:16-alpine
           imagePullPolicy: IfNotPresent
-          # Add a security context for the container to run as the non-root user
           securityContext:
             runAsUser: 999
             runAsGroup: 999
@@ -63,6 +62,8 @@ spec:
                   key: POSTGRES_PASSWORD
             - name: POSTGRES_DB
               value: chalk_board
+            - name: PGDATA # Instruct Postgres to use a subdirectory
+              value: /var/lib/postgresql/data/pgdata
           command: ["postgres"]
           args: ["-c", "config_file=/etc/postgresql/postgresql.conf"]
           livenessProbe:
