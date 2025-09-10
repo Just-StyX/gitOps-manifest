@@ -15,11 +15,11 @@ spec:
       labels:
         app: gateway-service
     spec:
+      restartPolicy: Always
       containers:
         - name: gateway-service
           image: jay717/gateway-service:1.0
           imagePullPolicy: Always
-          restartPolicy: Always
           env:
             - name: BPL_DEBUG_ENABLED
               valueFrom:
@@ -113,6 +113,9 @@ spec:
                 configMapKeyRef:
                   name: chalkboard-shared-config
                   key: KEYCLOAK_REALM
+            # Optional: Point to mounted logback config
+            - name: LOGGING_CONFIG
+              value: "file:/config/logback-config.xml" # Adjust filename as needed
           ports:
             - containerPort: 8002
               name: debug-port
@@ -122,19 +125,21 @@ spec:
             - name: log-volume
               mountPath: /workspace/logs
             - name: gateway-config-volume
-              mountPath: /config
-            - name: log-config-volume
-              mountPath: /config/
-              readOnly: true
+              mountPath: /config/gateway-service-application.yml # Mount as a single file
+              subPath: gateway-service-application.yml
+            - name: logback-config-volume
+              mountPath: /config/logback-config.xml # Mount logback config file
+              subPath: logback-config.xml
       volumes:
         - name: log-volume
-          emptyDir: {} # Temporary storage for logs
+          emptyDir: {}
         - name: gateway-config-volume
           configMap:
-            name: gateway-config # This name must match the ConfigMap name
-        - name: log-config-volume
+            name: gateway-config
+        - name: logback-config-volume
           configMap:
             name: logback-config
+
 ---
 apiVersion: v1
 kind: Service
@@ -155,7 +160,167 @@ spec:
       protocol: TCP
       port: 8002
       targetPort: debug-port
-  type: ClusterIP # Use ClusterIP for internal traffic
+  type: ClusterIP
+
+
+#apiVersion: apps/v1
+#kind: Deployment
+#metadata:
+#  name: gateway-service
+#  namespace: chalk-board-namespace
+#  labels:
+#    app: gateway-service
+#spec:
+#  replicas: 1
+#  selector:
+#    matchLabels:
+#      app: gateway-service
+#  template:
+#    metadata:
+#      labels:
+#        app: gateway-service
+#    spec:
+#      containers:
+#        - name: gateway-service
+#          image: jay717/gateway-service:1.0
+#          imagePullPolicy: Always
+#          restartPolicy: Always
+#          env:
+#            - name: BPL_DEBUG_ENABLED
+#              valueFrom:
+#                configMapKeyRef:
+#                  name: chalkboard-shared-config
+#                  key: BPL_DEBUG_ENABLED
+#            - name: BPL_DEBUG_PORT
+#              value: "8002"
+#            - name: SERVICE_TEAM_GW
+#              valueFrom:
+#                configMapKeyRef:
+#                  name: chalkboard-shared-config
+#                  key: SERVICE_TEAM_GW
+#            - name: SERVICE_DEPARTMENT_GW
+#              valueFrom:
+#                configMapKeyRef:
+#                  name: chalkboard-shared-config
+#                  key: SERVICE_DEPARTMENT_GW
+#            - name: SPRING_DATA_REDIS_HOST
+#              valueFrom:
+#                configMapKeyRef:
+#                  name: chalkboard-shared-config
+#                  key: SPRING_DATA_REDIS_HOST
+#            - name: OTEL_SERVICE_NAME
+#              valueFrom:
+#                configMapKeyRef:
+#                  name: chalkboard-shared-config
+#                  key: OTEL_SERVICE_NAME_GW
+#            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+#              valueFrom:
+#                configMapKeyRef:
+#                  name: chalkboard-shared-config
+#                  key: OTEL_EXPORTER_OTLP_ENDPOINT
+#            - name: OTEL_COLLECTOR_METRICS_URL
+#              valueFrom:
+#                configMapKeyRef:
+#                  name: chalkboard-shared-config
+#                  key: OTEL_COLLECTOR_METRICS_URL
+#            - name: OTEL_COLLECTOR_TRACES_URL
+#              valueFrom:
+#                configMapKeyRef:
+#                  name: chalkboard-shared-config
+#                  key: OTEL_COLLECTOR_TRACES_URL
+#            - name: LEARNING_SERVICE_URL
+#              valueFrom:
+#                configMapKeyRef:
+#                  name: chalkboard-shared-config
+#                  key: LEARNING_SERVICE_URL
+#            - name: SERVER_SIDE_URL
+#              valueFrom:
+#                configMapKeyRef:
+#                  name: chalkboard-shared-config
+#                  key: SERVER_SIDE_URL
+#            - name: GRAFANA_SERVICE_URL
+#              valueFrom:
+#                configMapKeyRef:
+#                  name: chalkboard-shared-config
+#                  key: GRAFANA_SERVICE_URL
+#            - name: AUTH_CLIENT_NAME
+#              valueFrom:
+#                configMapKeyRef:
+#                  name: chalkboard-shared-config
+#                  key: AUTH_CLIENT_NAME
+#            - name: AUTH_CLIENT_ID
+#              valueFrom:
+#                configMapKeyRef:
+#                  name: chalkboard-shared-config
+#                  key: AUTH_CLIENT_ID
+#            - name: AUTH_CLIENT_REDIRECT_URI
+#              valueFrom:
+#                configMapKeyRef:
+#                  name: chalkboard-shared-config
+#                  key: AUTH_CLIENT_REDIRECT_URI
+#            - name: AUTH_CLIENT_AUTHORIZATION_GRANT_TYPE
+#              valueFrom:
+#                configMapKeyRef:
+#                  name: chalkboard-shared-config
+#                  key: AUTH_CLIENT_AUTHORIZATION_GRANT_TYPE
+#            - name: SPRING_DATA_REDIS_PASSWORD
+#              valueFrom:
+#                secretKeyRef:
+#                  name: chalkboard-secret
+#                  key: REDIS_PASSWORD
+#            - name: AUTH_CLIENT_SECRET
+#              valueFrom:
+#                secretKeyRef:
+#                  name: chalkboard-secret
+#                  key: AUTH_CLIENT_SECRET
+#            - name: SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI
+#              valueFrom:
+#                configMapKeyRef:
+#                  name: chalkboard-shared-config
+#                  key: KEYCLOAK_REALM
+#          ports:
+#            - containerPort: 8002
+#              name: debug-port
+#            - containerPort: 8082
+#              name: app-port
+#          volumeMounts:
+#            - name: log-volume
+#              mountPath: /workspace/logs
+#            - name: gateway-config-volume
+#              mountPath: /config
+#            - name: log-config-volume
+#              mountPath: /config/
+#              readOnly: true
+#      volumes:
+#        - name: log-volume
+#          emptyDir: {} # Temporary storage for logs
+#        - name: gateway-config-volume
+#          configMap:
+#            name: gateway-config # This name must match the ConfigMap name
+#        - name: log-config-volume
+#          configMap:
+#            name: logback-config
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  namespace: chalk-board-namespace
+#  name: gateway-service
+#  labels:
+#    app: gateway-service
+#spec:
+#  selector:
+#    app: gateway-service
+#  ports:
+#    - name: http-app
+#      protocol: TCP
+#      port: 8082
+#      targetPort: app-port
+#    - name: http-debug
+#      protocol: TCP
+#      port: 8002
+#      targetPort: debug-port
+#  type: ClusterIP # Use ClusterIP for internal traffic
 
 
 #apiVersion: apps/v1

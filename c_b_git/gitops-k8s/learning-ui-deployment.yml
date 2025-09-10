@@ -79,10 +79,12 @@ spec:
             - name: log-volume
               mountPath: /workspace/logs
             - name: log-config-volume
-              mountPath: /config/
+              mountPath: /config/learning-ui-application.yml # Mount as a single file
+              subPath: learning-ui-application.yml
               readOnly: true
             - name: learning-ui-config-volume
-              mountPath: /config
+              mountPath: /config/logback-config.xml # Mount logback config file
+              subPath: logback-config.xml
       volumes:
         - name: log-volume
           emptyDir: {} # Use an EmptyDir for temporary logs

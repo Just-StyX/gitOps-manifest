@@ -95,10 +95,12 @@ spec:
             - name: log-volume
               mountPath: /workspace/logs
             - name: log-config-volume
-              mountPath: /config/
+              mountPath: /config/learning-service-application.yml # Mount as a single file
+              subPath: learning-service-application.yml
               readOnly: true
             - name: learning-config-volume
-              mountPath: /config
+              mountPath: /config/logback-config.xml # Mount logback config file
+              subPath: logback-config.xml
       volumes:
         - name: services-files-volume
           emptyDir: {}
