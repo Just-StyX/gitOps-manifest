@@ -1,96 +1,194 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: postgres-stateful
+  name: postgres
   namespace: chalk-board-namespace
-  labels:
-    app: postgres
 spec:
   selector:
     matchLabels:
       app: postgres
-  serviceName: postgres-service
-  persistentVolumeClaimRetentionPolicy:
-    whenDeleted: Retain
-    whenScaled: Delete
+  serviceName: "postgres"
   replicas: 1
   template:
     metadata:
       labels:
         app: postgres
     spec:
-      # Correct fsGroup to match the postgres user's GID
-      securityContext:
-        fsGroup: 999
-      # Use an initContainer to fix volume permissions on the subdirectory
+      terminationGracePeriodSeconds: 30
       initContainers:
-        - name: fix-perms
-          image: busybox:latest
-          command: ["sh", "-c", "mkdir -p /var/lib/postgresql/data/pgdata && chown -R 999:999 /var/lib/postgresql/data"]
+        - name: init
+          image: postgres:latest
+          command: [ "bash", "-c" ]
+          args:
+            - |
+              #create archive directory
+              mkdir -p /data/archive && chown -R 999:999 /data/archive
           volumeMounts:
-            - name: postgres-data
-              mountPath: /var/lib/postgresql/data
+            - name: data
+              mountPath: /data
+              readOnly: false
       containers:
         - name: postgres
           image: postgres:latest
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsUser: 999
-            runAsGroup: 999
+          args: ["-c", "config_file=/config/postgresql.conf"]
           ports:
             - containerPort: 5432
-              name: postgres
-          volumeMounts:
-            - name: postgres-data
-              mountPath: /var/lib/postgresql/data
-            - name: postgres-config-volume
-              mountPath: /docker-entrypoint-initdb.d/init.sql
-              subPath: init.sql
-            - name: postgres-config-volume
-              mountPath: /etc/postgresql/postgresql.conf
-              subPath: postgres-custom.conf
+              name: database
           env:
+            - name: PGDATA
+              value: "/data/pgdata"
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
                   name: chalkboard-secret
                   key: POSTGRES_USERNAME
+                  optional: false
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: chalkboard-secret
                   key: POSTGRES_PASSWORD
-            - name: POSTGRES_DB
-              value: chalk_board
-            - name: PGDATA # Instruct Postgres to use a subdirectory
-              value: /var/lib/postgresql/data/pgdata
-          command: ["postgres"]
-          args: ["-c", "config_file=/etc/postgresql/postgresql.conf"]
+                  optional: false
+#            - name: POSTGRES_DB
+#              valueFrom:
+#                secretKeyRef:
+#                  name: postgresql
+#                  key: POSTGRES_DB
+#                  optional: false
+          volumeMounts:
+            - name: postgres-config-volume
+              mountPath: /config
+              readOnly: false
+            - name: data
+              mountPath: /data
+              readOnly: false
+            - name: postgres-config-volume
+              mountPath: /docker-entrypoint-initdb.d/init.sql
+              subPath: init.sql
       volumes:
         - name: postgres-config-volume
           configMap:
             name: postgres-config
+            defaultMode: 0755
   volumeClaimTemplates:
     - metadata:
-        name: postgres-data
+        name: data
       spec:
         accessModes: [ "ReadWriteOnce" ]
         storageClassName: "standard"
         resources:
           requests:
-            storage: 1Gi
+            storage: 100Mi
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgres-service
+  name: postgres
   namespace: chalk-board-namespace
   labels:
     app: postgres
 spec:
   ports:
     - port: 5432
+      targetPort: 5432
       name: postgres
   clusterIP: None
   selector:
     app: postgres
+
+#apiVersion: apps/v1
+#kind: StatefulSet
+#metadata:
+#  name: postgres-stateful
+#  namespace: chalk-board-namespace
+#  labels:
+#    app: postgres
+#spec:
+#  selector:
+#    matchLabels:
+#      app: postgres
+#  serviceName: postgres-service
+#  persistentVolumeClaimRetentionPolicy:
+#    whenDeleted: Retain
+#    whenScaled: Delete
+#  replicas: 1
+#  template:
+#    metadata:
+#      labels:
+#        app: postgres
+#    spec:
+#      # Correct fsGroup to match the postgres user's GID
+#      securityContext:
+#        fsGroup: 999
+#      # Use an initContainer to fix volume permissions on the subdirectory
+#      initContainers:
+#        - name: fix-perms
+#          image: busybox:latest
+#          command: ["sh", "-c", "mkdir -p /var/lib/postgresql/data/pgdata && chown -R 999:999 /var/lib/postgresql/data"]
+#          volumeMounts:
+#            - name: postgres-data
+#              mountPath: /var/lib/postgresql/data
+#      containers:
+#        - name: postgres
+#          image: postgres:latest
+#          imagePullPolicy: IfNotPresent
+#          securityContext:
+#            runAsUser: 999
+#            runAsGroup: 999
+#          ports:
+#            - containerPort: 5432
+#              name: postgres
+#          volumeMounts:
+#            - name: postgres-data
+#              mountPath: /var/lib/postgresql/data
+#            - name: postgres-config-volume
+#              mountPath: /docker-entrypoint-initdb.d/init.sql
+#              subPath: init.sql
+#            - name: postgres-config-volume
+#              mountPath: /etc/postgresql/postgresql.conf
+#              subPath: postgres-custom.conf
+#          env:
+#            - name: POSTGRES_USER
+#              valueFrom:
+#                secretKeyRef:
+#                  name: chalkboard-secret
+#                  key: POSTGRES_USERNAME
+#            - name: POSTGRES_PASSWORD
+#              valueFrom:
+#                secretKeyRef:
+#                  name: chalkboard-secret
+#                  key: POSTGRES_PASSWORD
+#            - name: POSTGRES_DB
+#              value: chalk_board
+#            - name: PGDATA # Instruct Postgres to use a subdirectory
+#              value: /var/lib/postgresql/data/pgdata
+#          command: ["postgres"]
+#          args: ["-c", "config_file=/etc/postgresql/postgresql.conf"]
+#      volumes:
+#        - name: postgres-config-volume
+#          configMap:
+#            name: postgres-config
+#  volumeClaimTemplates:
+#    - metadata:
+#        name: postgres-data
+#      spec:
+#        accessModes: [ "ReadWriteOnce" ]
+#        storageClassName: "standard"
+#        resources:
+#          requests:
+#            storage: 1Gi
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: postgres-service
+#  namespace: chalk-board-namespace
+#  labels:
+#    app: postgres
+#spec:
+#  ports:
+#    - port: 5432
+#      name: postgres
+#  clusterIP: None
+#  selector:
+#    app: postgres
