@@ -66,8 +66,8 @@ spec:
           configMap:
             name: chalk-keycloak-realm-config
             items:
-              - key: chalk-board-realm.json
-                path: chalk-board-realm.json
+              - key: realm-config.json
+                path: realm-config.json
 ---
 apiVersion: v1
 kind: Service
