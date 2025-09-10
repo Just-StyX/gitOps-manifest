@@ -25,14 +25,14 @@ spec:
       # Use an initContainer to fix volume permissions on the subdirectory
       initContainers:
         - name: fix-perms
-          image: postgres:16-alpine
+          image: busybox:latest
           command: ["sh", "-c", "mkdir -p /var/lib/postgresql/data/pgdata && chown -R 999:999 /var/lib/postgresql/data"]
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data
       containers:
         - name: postgres
-          image: postgres:16-alpine
+          image: postgres:latest
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 999
