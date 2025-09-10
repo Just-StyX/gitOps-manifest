@@ -61,6 +61,8 @@ spec:
         - name: tempo-config-volume
           configMap:
             name: tempo-config
+        - name: tempo-data
+          emptyDir: { }
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

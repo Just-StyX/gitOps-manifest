@@ -18,7 +18,7 @@ data:
         - roles:
             - frontend-search
           memcached:
-            addresses: dns+memcached:11211
+            addresses: dns+memcached
 
     query_frontend:
       mcp_server:
@@ -45,23 +45,23 @@ data:
         jaeger: # the receives all come from the OpenTelemetry collector.  more configuration information can
           protocols: # be found there: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver
             thrift_http: #
-              endpoint: "tempo:14268" # for a production deployment you should only enable the receivers you need!
+              endpoint: "tempo" # for a production deployment you should only enable the receivers you need!
             grpc:
-              endpoint: "tempo:14250"
+              endpoint: "tempo"
             thrift_binary:
-              endpoint: "tempo:6832"
+              endpoint: "tempo"
             thrift_compact:
-              endpoint: "tempo:6831"
+              endpoint: "tempo"
         zipkin:
-          endpoint: "tempo:9411"
+          endpoint: "tempo"
         otlp:
           protocols:
             grpc:
-              endpoint: "tempo:4317"
+              endpoint: "tempo"
             http:
-              endpoint: "tempo:4318"
+              endpoint: "tempo"
         opencensus:
-          endpoint: "tempo:55678"
+          endpoint: "tempo"
 
     ingester:
       max_block_duration: 5m # cut the headblock when this much time passes. this is being set for demo purposes and should probably be left alone normally
@@ -78,7 +78,7 @@ data:
       storage:
         path: /var/tempo/generator/wal
         remote_write:
-          - url: http://prometheus:9090/api/v1/write
+          - url: http://prometheus/api/v1/write
             send_exemplars: true
       traces_storage:
         path: /var/tempo/generator/traces

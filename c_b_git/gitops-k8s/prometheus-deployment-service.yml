@@ -38,18 +38,12 @@ spec:
             - '--enable-feature=exemplar-storage'
             - '--enable-feature=native-histograms'
             - '--web.enable-remote-write-receiver'
-          livenessProbe:
-            httpGet:
-              path: /-/healthy
-              port: 9090
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            timeoutSeconds: 1
-            failureThreshold: 10
       volumes:
         - name: prometheus-config-volume
           configMap:
             name: prometheus-config
+        - name: prometheus-data
+          emptyDir: { }
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
