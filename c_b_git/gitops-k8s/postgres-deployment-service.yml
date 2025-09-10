@@ -25,7 +25,7 @@ spec:
       # Use an initContainer to fix volume permissions on the subdirectory
       initContainers:
         - name: fix-perms
-          image: busybox:1.36
+          image: postgres:16-alpine
           command: ["sh", "-c", "mkdir -p /var/lib/postgresql/data/pgdata && chown -R 999:999 /var/lib/postgresql/data"]
           volumeMounts:
             - name: postgres-data
@@ -66,20 +66,6 @@ spec:
               value: /var/lib/postgresql/data/pgdata
           command: ["postgres"]
           args: ["-c", "config_file=/etc/postgresql/postgresql.conf"]
-          livenessProbe:
-            exec:
-              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 5
-          readinessProbe:
-            exec:
-              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
       volumes:
         - name: postgres-config-volume
           configMap:

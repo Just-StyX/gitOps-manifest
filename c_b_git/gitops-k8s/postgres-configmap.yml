@@ -4,13 +4,13 @@ metadata:
   name: postgres-config
   namespace: chalk-board-namespace
 data:
-  init.sql: |
+  init.sql: |+
     CREATE DATABASE chalk_keycloak;
     CREATE DATABASE chalk_board;
     CREATE DATABASE chalk_ui;
     -- Your additional database initialization commands here
 
-  postgres-custom.conf: |
+  postgres-custom.conf: |+
     shared_preload_libraries = 'pg_stat_statements'
     pg_stat_statements.track = all
     max_connections = 200
