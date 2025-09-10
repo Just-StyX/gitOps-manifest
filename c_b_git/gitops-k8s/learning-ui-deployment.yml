@@ -19,24 +19,62 @@ spec:
         - name: learning-ui
           image: jay717/ui-service:1.0
           imagePullPolicy: Always
-          restartPolicy: UnlessStopped
-          ports:
-            - containerPort: 8003
-              name: debug
-            - containerPort: 8083
-              name: http
-          envFrom:
-            - configMapRef:
-                name: chalkboard-shared-config
-            - secretRef:
-                name: chalkboard-secret
+          restartPolicy: Always
           env:
             - name: BPL_DEBUG_ENABLED
               value: "true"
             - name: BPL_DEBUG_PORT
               value: "8003"
-            - name: LOGGING_CONFIG
-              value: "file:/config/logback-spring.xml"
+            - name: SERVICE_TEAM_UI
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: SERVICE_TEAM_UI
+            - name: SERVICE_DEPARTMENT_UI
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: SERVICE_DEPARTMENT_UI
+            - name: LEARNING_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: LEARNING_SERVICE_URL
+            - name: MANAGEMENT_ENDPOINT_INCLUDE
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: MANAGEMENT_ENDPOINT_INCLUDE
+            - name: MANAGEMENT_WEB_ENDPOINT_BASE_UI
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: MANAGEMENT_WEB_ENDPOINT_BASE_UI
+            - name: OTEL_SERVICE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: OTEL_SERVICE_NAME_UI
+            - name: OTEL_COLLECTOR_METRICS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: OTEL_COLLECTOR_METRICS_URL
+            - name: OTEL_COLLECTOR_TRACES_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: OTEL_COLLECTOR_TRACES_URL
+            - name: SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: KEYCLOAK_REALM
+          ports:
+            - containerPort: 8003
+              name: debug-port
+            - containerPort: 8083
+              name: app-port
           volumeMounts:
             - name: log-volume
               mountPath: /workspace/logs
@@ -47,32 +85,111 @@ spec:
               mountPath: /config
       volumes:
         - name: log-volume
-          hostPath:
-            path: /path/on/host/for/learning-ui/logs # TODO: Change this
-            type: DirectoryOrCreate
+          emptyDir: {} # Use an EmptyDir for temporary logs
         - name: log-config-volume
           configMap:
             name: logback-config
         - name: learning-ui-config-volume
           configMap:
             name: learning-ui-config
-
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: learning-ui-service
+  name: learning-ui
   namespace: chalk-board-namespace
+  labels:
+    app: learning-ui
 spec:
   selector:
     app: learning-ui
   ports:
-    - name: debug-port
-      protocol: TCP
-      port: 8003
-      targetPort: 8003
-    - name: http-port
+    - name: http-app
       protocol: TCP
       port: 8083
-      targetPort: 8083
-  type: ClusterIP
+      targetPort: app-port
+    - name: http-debug
+      protocol: TCP
+      port: 8003
+      targetPort: debug-port
+  type: ClusterIP # Use ClusterIP for internal traffic within the cluster.
+
+
+#apiVersion: apps/v1
+#kind: Deployment
+#metadata:
+#  name: learning-ui
+#  namespace: chalk-board-namespace
+#  labels:
+#    app: learning-ui
+#spec:
+#  replicas: 1
+#  selector:
+#    matchLabels:
+#      app: learning-ui
+#  template:
+#    metadata:
+#      labels:
+#        app: learning-ui
+#    spec:
+#      containers:
+#        - name: learning-ui
+#          image: jay717/ui-service:1.0
+#          imagePullPolicy: Always
+#          restartPolicy: UnlessStopped
+#          ports:
+#            - containerPort: 8003
+#              name: debug
+#            - containerPort: 8083
+#              name: http
+#          envFrom:
+#            - configMapRef:
+#                name: chalkboard-shared-config
+#            - secretRef:
+#                name: chalkboard-secret
+#          env:
+#            - name: BPL_DEBUG_ENABLED
+#              value: "true"
+#            - name: BPL_DEBUG_PORT
+#              value: "8003"
+#            - name: LOGGING_CONFIG
+#              value: "file:/config/logback-spring.xml"
+#          volumeMounts:
+#            - name: log-volume
+#              mountPath: /workspace/logs
+#            - name: log-config-volume
+#              mountPath: /config/
+#              readOnly: true
+#            - name: learning-ui-config-volume
+#              mountPath: /config
+#      volumes:
+#        - name: log-volume
+#          hostPath:
+#            path: /path/on/host/for/learning-ui/logs # TODO: Change this
+#            type: DirectoryOrCreate
+#        - name: log-config-volume
+#          configMap:
+#            name: logback-config
+#        - name: learning-ui-config-volume
+#          configMap:
+#            name: learning-ui-config
+#
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: learning-ui-service
+#  namespace: chalk-board-namespace
+#spec:
+#  selector:
+#    app: learning-ui
+#  ports:
+#    - name: debug-port
+#      protocol: TCP
+#      port: 8003
+#      targetPort: 8003
+#    - name: http-port
+#      protocol: TCP
+#      port: 8083
+#      targetPort: 8083
+#  type: ClusterIP

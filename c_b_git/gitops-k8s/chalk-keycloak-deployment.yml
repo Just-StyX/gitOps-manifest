@@ -3,25 +3,60 @@ kind: Deployment
 metadata:
   name: chalk-keycloak
   namespace: chalk-board-namespace
+  labels:
+    app: chalk-keycloak
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: chalk-keycloak
-  replicas: 1
   template:
     metadata:
       labels:
         app: chalk-keycloak
     spec:
       containers:
-        - name: chalk-keycloak
+        - name: keycloak
           image: quay.io/keycloak/keycloak:latest
-          args: ["start-dev", "--http-port=7080"]
-          envFrom:
-            - configMapRef:
-                name: chalkboard-shared-config # Inject all variables from the ConfigMap
+          args:
+            - "start-dev"
+            - "--http-port=7080"
+            - "--import-realm"
+          env:
+            - name: KC_DB
+              value: "postgres"
+            - name: KC_DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: KEYCLOAK_DATABASE_URL
+            - name: KC_DB_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: CHALK_BOARD_DATABASE_USERNAME
+            - name: KC_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: chalkboard-secret
+                  key: CHALK_BOARD_DATABASE_PASSWORD
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: KEYCLOAK_USERNAME
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: chalkboard-secret
+                  key: KEYCLOAK_PASSWORD
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_PROXY_HEADERS
+              value: "xforwarded"
           ports:
             - containerPort: 7080
+              name: http
           volumeMounts:
             - name: realm-config-volume
               mountPath: /opt/keycloak/data/import/realm-config.json
@@ -31,16 +66,16 @@ spec:
           configMap:
             name: chalk-keycloak-realm-config
             items:
-              - key: realm-config.json
-                path: realm-config.json
-
+              - key: chalk-board-realm.json
+                path: chalk-board-realm.json
 ---
-# Kubernetes Service to expose the Keycloak deployment
 apiVersion: v1
 kind: Service
 metadata:
   name: chalk-keycloak
   namespace: chalk-board-namespace
+  labels:
+    app: chalk-keycloak
 spec:
   selector:
     app: chalk-keycloak
@@ -48,4 +83,3 @@ spec:
     - protocol: TCP
       port: 7080
       targetPort: 7080
-  type: ClusterIP # Internal service access

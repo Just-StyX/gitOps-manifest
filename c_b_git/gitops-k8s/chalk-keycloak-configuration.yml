@@ -652,40 +652,8 @@ data:
         "fullScopeAllowed" : true,
         "nodeReRegistrationTimeout" : -1,
         "defaultClientScopes" : [ "web-origins", "service_account", "acr", "roles", "profile", "basic", "email" ],
-        "optionalClientScopes" : [ "address", "phone", "offline_access", "organization", "microprofile-jwt" ],
-        "authorizationSettings" : {
-          "allowRemoteResourceManagement" : true,
-          "policyEnforcementMode" : "ENFORCING",
-          "resources" : [ {
-            "name" : "Default Resource",
-            "type" : "urn:gateway-client:resources:default",
-            "ownerManagedAccess" : false,
-            "attributes" : { },
-            "uris" : [ "/*" ]
-          } ],
-          "policies" : [ {
-            "name" : "Default Policy",
-            "description" : "A policy that grants access only for users within this realm",
-            "type" : "js",
-            "logic" : "POSITIVE",
-            "decisionStrategy" : "AFFIRMATIVE",
-            "config" : {
-              "code" : "// by default, grants any permission associated with this policy\n$evaluation.grant();\n"
-            }
-          }, {
-            "name" : "Default Permission",
-            "description" : "A permission that applies to the default resource type",
-            "type" : "resource",
-            "logic" : "POSITIVE",
-            "decisionStrategy" : "UNANIMOUS",
-            "config" : {
-              "defaultResourceType" : "urn:gateway-client:resources:default",
-              "applyPolicies" : "[\"Default Policy\"]"
-            }
-          } ],
-          "scopes" : [ ],
-          "decisionStrategy" : "UNANIMOUS"
-        }
+        "optionalClientScopes" : [ "address", "phone", "offline_access", "organization", "microprofile-jwt" ]
+
       }, {
         "id" : "108af76d-375d-4ad7-aa57-7977702d3483",
         "clientId" : "realm-management",

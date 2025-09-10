@@ -14,7 +14,7 @@ data:
   KEYCLOAK_DATABASE_URL: "jdbc:postgresql://postgres/chalk_keycloak"
   AUTH_CLIENT_ID: "gateway-client"
   AUTH_CLIENT_NAME: "JSL - Learning Center"
-  AUTH_CLIENT_REDIRECT_URI: "http://localhost/login/oauth2/code/keycloak"
+  AUTH_CLIENT_REDIRECT_URI: "http://chalk-keycloak/login/oauth2/code/keycloak"
   AUTH_CLIENT_AUTHORIZATION_GRANT_TYPE: "authorization_code"
   OTEL_COLLECTOR_METRICS_URL: "http://otel-collector/v1/metrics"
   OTEL_COLLECTOR_TRACES_URL: "http://otel-collector/v1/traces"
