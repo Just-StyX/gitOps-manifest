@@ -12,7 +12,7 @@ data:
   KEYCLOAK_USERNAME: "username"
   KEYCLOAK_REALM: "http://chalk-keycloak/realms/chalk-board"
   KEYCLOAK_DATABASE_URL: "jdbc:postgresql://postgres/chalk_keycloak"
-  AUTH_CLIENT_ID: "gateway-service"
+  AUTH_CLIENT_ID: "gateway-client"
   AUTH_CLIENT_NAME: "JSL - Learning Center"
   AUTH_CLIENT_REDIRECT_URI: "http://localhost/login/oauth2/code/keycloak"
   AUTH_CLIENT_AUTHORIZATION_GRANT_TYPE: "authorization_code"
