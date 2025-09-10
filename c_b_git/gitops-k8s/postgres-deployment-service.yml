@@ -21,7 +21,7 @@ spec:
     spec:
       # Add fsGroup to set correct group ownership for the mounted volume
       securityContext:
-        fsGroup: 999
+        fsGroup: 0700
       # Use an initContainer to fix volume permissions before PostgreSQL starts
       initContainers:
         - name: fix-perms
