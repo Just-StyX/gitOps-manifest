@@ -1,4 +1,3 @@
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -20,22 +19,34 @@ spec:
       labels:
         app: postgres
     spec:
+      # Add fsGroup to set correct group ownership for the mounted volume
+      securityContext:
+        fsGroup: 999
+      # Use an initContainer to fix volume permissions before PostgreSQL starts
+      initContainers:
+        - name: fix-perms
+          image: busybox:1.36
+          command: ["sh", "-c", "chown -R 999:999 /var/lib/postgresql/data"]
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
       containers:
         - name: postgres
           image: postgres:16-alpine
           imagePullPolicy: IfNotPresent
+          # Add a security context for the container to run as the non-root user
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 999
           ports:
             - containerPort: 5432
               name: postgres
           volumeMounts:
-            # Persistent volume mount for database data
             - name: postgres-data
               mountPath: /var/lib/postgresql/data
-            # Mount init.sql file from ConfigMap
             - name: postgres-config-volume
               mountPath: /docker-entrypoint-initdb.d/init.sql
               subPath: init.sql
-            # Mount custom postgres.conf file from ConfigMap
             - name: postgres-config-volume
               mountPath: /etc/postgresql/postgresql.conf
               subPath: postgres-custom.conf
@@ -52,7 +63,6 @@ spec:
                   key: POSTGRES_PASSWORD
             - name: POSTGRES_DB
               value: chalk_board
-          # Custom command and health checks
           command: ["postgres"]
           args: ["-c", "config_file=/etc/postgresql/postgresql.conf"]
           livenessProbe:
@@ -73,7 +83,6 @@ spec:
         - name: postgres-config-volume
           configMap:
             name: postgres-config
-  # Dynamic PersistentVolumeClaim for database data
   volumeClaimTemplates:
     - metadata:
         name: postgres-data
