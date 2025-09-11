@@ -6,7 +6,7 @@ metadata:
 data:
   logback-spring.xml: |+
     <?xml version="1.0" encoding="UTF-8"?>
-    <configuration>
+    <configuration debug="true">
         <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
         <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
         <springProperty scope="context" name="application" source="spring.application.name"/>
