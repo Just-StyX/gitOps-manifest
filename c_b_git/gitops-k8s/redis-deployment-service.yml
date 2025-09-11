@@ -1,85 +1,85 @@
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: redis-cluster
-  namespace: chalk-board-namespace
-spec:
-  serviceName: redis
-  replicas: 6
-  selector:
-    matchLabels:
-      app: redis-cluster
-  template:
-    metadata:
-      labels:
-        app: redis-cluster
-    spec:
-      securityContext:
-        fsGroup: 999
-      initContainers:
-        - name: init-redis-data-dir
-          image: busybox:latest
-          command: ["sh", "-c", "chown -R 999:999 /data && chmod 700 /data"]
-          volumeMounts:
-            - name: data
-              mountPath: /data
-        # Init container to copy config to a writable volume
-        - name: copy-conf
-          image: busybox:latest
-          command: ["sh", "-c", "cp /tmp/conf/* /conf-writable/ && chmod 755 /conf-writable/update-node.sh"]
-          volumeMounts:
-            - name: conf-ro
-              mountPath: /tmp/conf
-            - name: conf-rw
-              mountPath: /conf-writable
-      containers:
-        - name: redis-cluster
-          image: redis:7-alpine
-          ports:
-            - containerPort: 6379
-              name: client
-            - containerPort: 16379
-              name: gossip
-          command: ["/conf-writable/update-node.sh"]
-          readinessProbe:
-            exec:
-              command: ["sh", "-c", "redis-cli -h $(hostname) ping"]
-            initialDelaySeconds: 15
-            periodSeconds: 10
-          volumeMounts:
-            - name: conf-rw
-              mountPath: /conf
-            - name: data
-              mountPath: /data
-      volumes:
-        - name: conf-ro
-          configMap:
-            name: redis-config
-        - name: conf-rw
-          emptyDir: {}
-  volumeClaimTemplates:
-    - metadata:
-        name: data
-      spec:
-        accessModes: [ "ReadWriteOnce" ]
-        storageClassName: "standard"
-        resources:
-          requests:
-            storage: 1Gi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: redis
-  namespace: chalk-board-namespace
-spec:
-  clusterIP: None
-  ports:
-    - port: 6379
-      targetPort: 6379
-      name: client
-    - port: 16379
-      targetPort: 16379
-      name: gossip
-  selector:
-    app: redis-cluster
+#apiVersion: apps/v1
+#kind: StatefulSet
+#metadata:
+#  name: redis-cluster
+#  namespace: chalk-board-namespace
+#spec:
+#  serviceName: redis
+#  replicas: 6
+#  selector:
+#    matchLabels:
+#      app: redis-cluster
+#  template:
+#    metadata:
+#      labels:
+#        app: redis-cluster
+#    spec:
+#      securityContext:
+#        fsGroup: 999
+#      initContainers:
+#        - name: init-redis-data-dir
+#          image: busybox:latest
+#          command: ["sh", "-c", "chown -R 999:999 /data && chmod 700 /data"]
+#          volumeMounts:
+#            - name: data
+#              mountPath: /data
+#        # Init container to copy config to a writable volume
+#        - name: copy-conf
+#          image: busybox:latest
+#          command: ["sh", "-c", "cp /tmp/conf/* /conf-writable/ && chmod 755 /conf-writable/update-node.sh"]
+#          volumeMounts:
+#            - name: conf-ro
+#              mountPath: /tmp/conf
+#            - name: conf-rw
+#              mountPath: /conf-writable
+#      containers:
+#        - name: redis-cluster
+#          image: redis:7-alpine
+#          ports:
+#            - containerPort: 6379
+#              name: client
+#            - containerPort: 16379
+#              name: gossip
+#          command: ["/conf-writable/update-node.sh"]
+#          readinessProbe:
+#            exec:
+#              command: ["sh", "-c", "redis-cli -h $(hostname) ping"]
+#            initialDelaySeconds: 15
+#            periodSeconds: 10
+#          volumeMounts:
+#            - name: conf-rw
+#              mountPath: /conf
+#            - name: data
+#              mountPath: /data
+#      volumes:
+#        - name: conf-ro
+#          configMap:
+#            name: redis-config
+#        - name: conf-rw
+#          emptyDir: {}
+#  volumeClaimTemplates:
+#    - metadata:
+#        name: data
+#      spec:
+#        accessModes: [ "ReadWriteOnce" ]
+#        storageClassName: "standard"
+#        resources:
+#          requests:
+#            storage: 1Gi
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: redis
+#  namespace: chalk-board-namespace
+#spec:
+#  clusterIP: None
+#  ports:
+#    - port: 6379
+#      targetPort: 6379
+#      name: client
+#    - port: 16379
+#      targetPort: 16379
+#      name: gossip
+#  selector:
+#    app: redis-cluster
