@@ -103,8 +103,7 @@ spec:
                 secretKeyRef:
                   name: chalkboard-secret
                   key: AUTH_CLIENT_SECRET
-            - name: SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI
-              value: http://chalk-keycloak:7080/realms/chalk-board
+#            - name: SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI
 #              valueFrom:
 #                configMapKeyRef:
 #                  name: chalkboard-shared-config
