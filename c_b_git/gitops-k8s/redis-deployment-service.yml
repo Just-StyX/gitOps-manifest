@@ -70,144 +70,144 @@
 #    app: redis-stateful
 
 
-#apiVersion: apps/v1
-#kind: StatefulSet
-#metadata:
-#  name: redis-stateful
-#  namespace: chalk-board-namespace
-#spec:
-#  serviceName: redis
-#  replicas: 1
-#  selector:
-#    matchLabels:
-#      app: redis-stateful
-#  template:
-#    metadata:
-#      labels:
-#        app: redis-stateful
-#    spec:
-#      containers:
-#        - name: redis-stateful
-#          image: redis:latest
-#          ports:
-#            - containerPort: 6379
-#              name: client
-#            - containerPort: 16379
-#              name: gossip
-#          command: ["/conf/update-node.sh", "redis-server", "/conf/redis.conf"]
-#          env:
-#            - name: POD_IP
-#              valueFrom:
-#                fieldRef:
-#                  fieldPath: status.podIP
-#          volumeMounts:
-#            - name: conf
-#              mountPath: /conf
-#              readOnly: false
-#            - name: data
-#              mountPath: /data
-#              readOnly: false
-#      volumes:
-#        - name: conf
-#          configMap:
-#            name: redis-config
-#            defaultMode: 0755
-#  volumeClaimTemplates:
-#    - metadata:
-#        name: data
-#      spec:
-#        accessModes: [ "ReadWriteOnce" ]
-#        storageClassName: "hostpath"
-#        resources:
-#          requests:
-#            storage: 50Mi
-#---
-#apiVersion: v1
-#kind: Service
-#metadata:
-#  name: redis
-#  namespace: chalk-board-namespace
-#spec:
-#  clusterIP: None
-#  ports:
-#    - port: 6379
-#      targetPort: 6379
-#      name: client
-#    - port: 16379
-#      targetPort: 16379
-#      name: gossip
-#  selector:
-#    app: redis-stateful
-
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: redis-stateful
   namespace: chalk-board-namespace
-  labels:
-    app: redis-stateful
 spec:
+  serviceName: redis
+  replicas: 1
   selector:
     matchLabels:
       app: redis-stateful
-  serviceName: redis
-  persistentVolumeClaimRetentionPolicy:
-    whenDeleted: Retain
-    whenScaled: Delete
-  replicas: 1
   template:
     metadata:
       labels:
         app: redis-stateful
     spec:
-#      # Optional: Use an initContainer to set correct permissions for the Redis user
-      initContainers:
-        - name: init-redis-data-dir
-          image: busybox:latest
-          command: ["chown", "-R", "redis:redis", "/data"]
-          volumeMounts:
-            - name: redis-data
-              mountPath: /data
       containers:
         - name: redis-stateful
-          image: redis:7-alpine
-          imagePullPolicy: IfNotPresent
+          image: redis:latest
           ports:
             - containerPort: 6379
-              name: redis
+              name: client
+            - containerPort: 16379
+              name: gossip
+          command: ["/conf/update-node.sh", "redis-server", "/conf/redis.conf"]
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
           volumeMounts:
-            - name: redis-data
-              mountPath: /data # Correct mount path for Redis data
-            - name: redis-config
-              mountPath: /etc/redis
-          # Direct arguments from your original request
-          command: ["redis-server"]
-          args: ["/etc/redis/redis-custom.conf"]
+            - name: conf
+              mountPath: /conf
+              readOnly: false
+            - name: data
+              mountPath: /data
+              readOnly: false
       volumes:
-        name: redis-config
-        configMap:
-          name: redis-config
+        - name: conf
+          configMap:
+            name: redis-config
+            defaultMode: 0755
   volumeClaimTemplates:
     - metadata:
-        name: redis-data
+        name: data
       spec:
         accessModes: [ "ReadWriteOnce" ]
-        storageClassName: "standard"
+        storageClassName: "hostpath"
         resources:
           requests:
-            storage: 1Gi
+            storage: 50Mi
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: redis
   namespace: chalk-board-namespace
-  labels:
-    app: redis
 spec:
+  clusterIP: None
   ports:
     - port: 6379
-      name: redis
-  clusterIP: None
+      targetPort: 6379
+      name: client
+    - port: 16379
+      targetPort: 16379
+      name: gossip
   selector:
     app: redis-stateful
+
+#apiVersion: apps/v1
+#kind: StatefulSet
+#metadata:
+#  name: redis-stateful
+#  namespace: chalk-board-namespace
+#  labels:
+#    app: redis-stateful
+#spec:
+#  selector:
+#    matchLabels:
+#      app: redis-stateful
+#  serviceName: redis
+#  persistentVolumeClaimRetentionPolicy:
+#    whenDeleted: Retain
+#    whenScaled: Delete
+#  replicas: 1
+#  template:
+#    metadata:
+#      labels:
+#        app: redis-stateful
+#    spec:
+##      # Optional: Use an initContainer to set correct permissions for the Redis user
+#      initContainers:
+#        - name: init-redis-data-dir
+#          image: busybox:latest
+#          command: ["chown", "-R", "redis:redis", "/data"]
+#          volumeMounts:
+#            - name: redis-data
+#              mountPath: /data
+#      containers:
+#        - name: redis-stateful
+#          image: redis:7-alpine
+#          imagePullPolicy: IfNotPresent
+#          ports:
+#            - containerPort: 6379
+#              name: redis
+#          volumeMounts:
+#            - name: redis-data
+#              mountPath: /data # Correct mount path for Redis data
+#            - name: redis-config
+#              mountPath: /etc/redis
+#          # Direct arguments from your original request
+#          command: ["redis-server"]
+#          args: ["/etc/redis/redis-custom.conf"]
+#      volumes:
+#        name: redis-config
+#        configMap:
+#          name: redis-config
+#  volumeClaimTemplates:
+#    - metadata:
+#        name: redis-data
+#      spec:
+#        accessModes: [ "ReadWriteOnce" ]
+#        storageClassName: "standard"
+#        resources:
+#          requests:
+#            storage: 1Gi
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: redis
+#  namespace: chalk-board-namespace
+#  labels:
+#    app: redis
+#spec:
+#  ports:
+#    - port: 6379
+#      name: redis
+#  clusterIP: None
+#  selector:
+#    app: redis-stateful
