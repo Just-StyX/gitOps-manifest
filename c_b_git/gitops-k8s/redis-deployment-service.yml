@@ -145,11 +145,11 @@ metadata:
   name: redis-stateful
   namespace: chalk-board-namespace
   labels:
-    app: redis
+    app: redis-stateful
 spec:
   selector:
     matchLabels:
-      app: redis
+      app: redis-stateful
   serviceName: redis
   persistentVolumeClaimRetentionPolicy:
     whenDeleted: Retain
@@ -158,7 +158,7 @@ spec:
   template:
     metadata:
       labels:
-        app: redis
+        app: redis-stateful
     spec:
 #      # Optional: Use an initContainer to set correct permissions for the Redis user
       initContainers:
@@ -169,7 +169,7 @@ spec:
             - name: redis-data
               mountPath: /data
       containers:
-        - name: redis
+        - name: redis-stateful
           image: redis:7-alpine
           imagePullPolicy: IfNotPresent
           ports:
