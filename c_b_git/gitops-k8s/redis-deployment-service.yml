@@ -210,4 +210,4 @@ spec:
       name: redis
   clusterIP: None
   selector:
-    app: redis
+    app: redis-stateful
