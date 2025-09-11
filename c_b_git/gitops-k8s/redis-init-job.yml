@@ -15,12 +15,12 @@ spec:
             - |
               until [ $(redis-cli -h redis-cluster-0.redis.chalk-board-namespace.svc.cluster.local ping | grep PONG | wc -l) -eq 6 ]; do echo "waiting for redis nodes to be ready..."; sleep 5; done
               redis-cli --cluster create \
-                redis-cluster-0.redis.chalk-board-namespace.svc.cluster.local:6379 \
-                redis-cluster-1.redis.chalk-board-namespace.svc.cluster.local:6379 \
-                redis-cluster-2.redis.chalk-board-namespace.svc.cluster.local:6379 \
-                redis-cluster-3.redis.chalk-board-namespace.svc.cluster.local:6379 \
-                redis-cluster-4.redis.chalk-board-namespace.svc.cluster.local:6379 \
-                redis-cluster-5.redis.chalk-board-namespace.svc.cluster.local:6379 \
+                redis-cluster-0.redis.chalk-board-namespace.svc.cluster.local \
+                redis-cluster-1.redis.chalk-board-namespace.svc.cluster.local \
+                redis-cluster-2.redis.chalk-board-namespace.svc.cluster.local \
+                redis-cluster-3.redis.chalk-board-namespace.svc.cluster.local \
+                redis-cluster-4.redis.chalk-board-namespace.svc.cluster.local \
+                redis-cluster-5.redis.chalk-board-namespace.svc.cluster.local \
                 --cluster-replicas 1 \
                 --cluster-yes
       restartPolicy: OnFailure
