@@ -115,7 +115,7 @@ spec:
                   key: KEYCLOAK_REALM
             # Optional: Point to mounted logback config
             - name: LOGGING_CONFIG
-              value: "file:/config/logback-config.xml" # Adjust filename as needed
+              value: "file:/config/logback-spring.xml" # Adjust filename as needed
           ports:
             - containerPort: 8002
               name: debug-port
@@ -128,8 +128,9 @@ spec:
               mountPath: /config/gateway-service-application.yml # Mount as a single file
               subPath: gateway-service-application.yml
             - name: logback-config-volume
-              mountPath: /config/logback-config.xml # Mount logback config file
-              subPath: logback-config.xml
+              mountPath: /config/logback-spring.xml # Mount logback config file
+              subPath: logback-spring.xml
+              readOnly: true
       volumes:
         - name: log-volume
           emptyDir: {}

@@ -24,6 +24,8 @@ spec:
               value: "true"
             - name: BPL_DEBUG_PORT
               value: "8003"
+            - name: LOGGING_CONFIG
+              value: "file:/config/logback-spring.xml"
             - name: SERVICE_TEAM_UI
               valueFrom:
                 configMapKeyRef:
@@ -82,8 +84,8 @@ spec:
               subPath: learning-ui-application.yml
               readOnly: true
             - name: logback-config-volume
-              mountPath: /config/logback-config.xml
-              subPath: logback-config.xml
+              mountPath: /config/logback-spring.xml
+              subPath: logback-spring.xml
               readOnly: true
       volumes:
         - name: log-volume
