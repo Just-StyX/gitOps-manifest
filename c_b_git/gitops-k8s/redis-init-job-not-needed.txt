@@ -1,0 +1,3 @@
+# Redis cluster initialization job is not needed for single Redis instance
+# This file can be deleted as we've simplified to a single Redis deployment
+# See redis-deployment-service-fixed.yml for the new simple Redis deployment

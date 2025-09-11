@@ -8,74 +8,47 @@ data:
     spring:
       application:
         name: learning-service
+      lifecycle:
+        timeout-per-shutdown-phase: 15s
       datasource:
-        url: ${CHALK_BOARD_DATABASE_URL:jdbc:postgresql://postgres:5432/chalk_board}
-        # These sensitive values should be handled by a Secret
-        password: ${CHALK_BOARD_DATABASE_PASSWORD}
-        username: ${CHALK_BOARD_DATABASE_USERNAME}
+        url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/chalk_board}
+        username: ${SPRING_DATASOURCE_USERNAME:username}
+        password: ${SPRING_DATASOURCE_PASSWORD:password}
+        hikari:
+          connection-timeout: 20000
+          maximum-pool-size: 20
+          minimum-idle: 5
       jpa:
         hibernate:
-          ddl-auto: create
-        database: postgresql
-        database-platform: org.hibernate.dialect.PostgreSQLDialect
+          ddl-auto: update
         show-sql: false
         properties:
           hibernate:
-            format_sql: false
-            boot:
-              allow_jdbc_metadata_access: false
-      servlet:
-        multipart:
-          max-file-size: 500MB
-          max-request-size: 550MB
-      mail:
-        host: mail-dev
-        port: 1025
-        username: jay
-        # This value should be handled by a Secret
-        password: jay
-        properties:
-          mail:
-            smtp:
-              trust: "*"
-            auth: true
-            starttls:
-              enable: true
-            connectiontimeout: 5000
-            timeout: 3000
-            writetimeout: 5000
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+            format_sql: true
       security:
         oauth2:
           resourceserver:
             jwt:
-              issuer-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI:http://localhost:7080/realms/chalk-board}
-
+              issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI:http://chalk-keycloak:7080/realms/chalk-board}
+    
     server:
       port: 8081
       shutdown: graceful
-      forwarded-headers-strategy: framework
-
-    springdoc:
-      api-docs:
-        path: /api-docs
-      swagger-ui:
-        path: /swagger-ui.html
-        enabled: true
-        try-it-out-enabled: true
-        operations-sorter: method
-        tags-sorter: alpha
-      show-actuator: false
-
-    info:
-      application:
-        file-upload:
-          path: ./learning-service-videos
+      tomcat:
+        connection-timeout: 2s
+        keep-alive-timeout: 15s
+        threads:
+          max: 50
+          min-spare: 5
 
     logging:
-      level:
-        org.springframework.cloud.gateway: DEBUG
       pattern:
         level: ${LOGGING_LEVEL_PATTERN_LS:"%5p [${spring.application.name},%X{trace_id},%X{span_id}]"}
+      level:
+        com.jsl: DEBUG
+        org.springframework.web: INFO
+        org.springframework.security: INFO
 
     management:
       endpoints:
@@ -92,7 +65,7 @@ data:
         os.enabled: true
         env.enabled: true
         git.mode: full
-
+      
       otlp:
         metrics:
           export:
@@ -118,32 +91,16 @@ data:
         distribution:
           percentiles:
             http.server.requests: 0.99, 0.95, 0.9, 0.7, 0.5
-            file.upload.metric: 0.99, 0.95, 0.9, 0.7, 0.5
-            create.course.metric: 0.99, 0.95, 0.9, 0.7, 0.5
-            file.download.metric: 0.99, 0.95, 0.9, 0.7, 0.5
+            course.creation.metric: 0.99, 0.95, 0.9, 0.7, 0.5
           percentiles-histogram:
             http.server.requests: true
-            file.upload.metric: true
-            create.course.metric: true
-            file.download.metric: true
+            course.creation.metric: true
           minimum-expected-value:
-            file.upload.metric: 100
-            create.course.metric: 100
             http.server.requests: 100ms
-            file.download.metric: 100ms
+            course.creation.metric: 100ms
           maximum-expected-value:
-            file.upload.metric: 10000
-            create.course.metric: 10s
-            file.download.metric: 10s
             http.server.requests: 10s
+            course.creation.metric: 10s
           slo:
-            file.upload.metric: 300,500,1000,2000
-            create.course.metric: 300,500,1000,2000
-            file.download.metric: 300,500,1000,2000
             http.server.requests: 300ms,500ms,1s,2s
-
-    application:
-      file-upload:
-        location: services_files
-      contact:
-        email: jsl-group@email.com
+            course.creation.metric: 300ms,500ms,1s,2s

@@ -93,7 +93,7 @@ spec:
                 configMapKeyRef:
                   name: chalkboard-shared-config
                   key: AUTH_CLIENT_AUTHORIZATION_GRANT_TYPE
-            - name: SPRING_DATA_REDIS_PASSWORD
+            - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: chalkboard-secret
@@ -120,8 +120,8 @@ spec:
             - name: log-volume
               mountPath: /workspace/logs
             - name: gateway-config-volume
-              mountPath: /config/gateway-service-application.yml # Mount as a single file
-              subPath: gateway-service-application.yml
+              mountPath: /config/application.yml # Mount as a single file
+              subPath: application.yml
             - name: logback-config-volume
               mountPath: /config/logback-spring.xml # Mount logback config file
               subPath: logback-spring.xml

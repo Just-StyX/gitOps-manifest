@@ -1,0 +1,153 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: learning-service
+  namespace: chalk-board-namespace
+  labels:
+    app: learning-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: learning-service
+  template:
+    metadata:
+      labels:
+        app: learning-service
+    spec:
+      containers:
+        - name: learning-service
+          image: jay717/learning-service:1.0
+          imagePullPolicy: Always
+          env:
+            - name: LOGGING_CONFIG
+              value: "file:/config/logback-spring.xml"
+            - name: SERVICE_TEAM_LS
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: SERVICE_TEAM_LS
+            - name: SERVICE_DEPARTMENT_LS
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: SERVICE_DEPARTMENT_LS
+            - name: OTEL_SERVICE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: OTEL_SERVICE_NAME_LS
+            - name: OTEL_COLLECTOR_METRICS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: OTEL_COLLECTOR_METRICS_URL
+            - name: OTEL_COLLECTOR_TRACES_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: OTEL_COLLECTOR_TRACES_URL
+            - name: MANAGEMENT_ENDPOINT_INCLUDE
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: MANAGEMENT_ENDPOINT_INCLUDE
+            - name: MANAGEMENT_WEB_ENDPOINT_BASE_LS
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: MANAGEMENT_WEB_ENDPOINT_BASE_LS
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: CHALK_BOARD_DATABASE_URL
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: CHALK_BOARD_DATABASE_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: chalkboard-secret
+                  key: CHALK_BOARD_DATABASE_PASSWORD
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: chalkboard-shared-config
+                  key: KEYCLOAK_REALM
+          ports:
+            - containerPort: 8001
+              name: debug-port
+            - containerPort: 8081
+              name: app-port
+          livenessProbe:
+            httpGet:
+              path: /learning-service-management/health/liveness
+              port: app-port
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /learning-service-management/health/readiness
+              port: app-port
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          volumeMounts:
+            - name: services-files-volume
+              mountPath: /workspace/services_files
+            - name: log-volume
+              mountPath: /workspace/logs
+            - name: app-config-volume
+              mountPath: /config/application.yml
+              subPath: application.yml
+              readOnly: true
+            - name: logback-config-volume
+              mountPath: /config/logback-spring.xml
+              subPath: logback-spring.xml
+              readOnly: true
+      volumes:
+        - name: services-files-volume
+          emptyDir: {}
+        - name: log-volume
+          emptyDir: {}
+        - name: app-config-volume
+          configMap:
+            name: learning-service-config
+        - name: logback-config-volume
+          configMap:
+            name: logback-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: learning-service
+  namespace: chalk-board-namespace
+  labels:
+    app: learning-service
+spec:
+  selector:
+    app: learning-service
+  ports:
+    - name: http-app
+      protocol: TCP
+      port: 8081
+      targetPort: app-port
+    - name: http-debug
+      protocol: TCP
+      port: 8001
+      targetPort: debug-port
+  type: ClusterIP
