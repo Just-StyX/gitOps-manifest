@@ -4,10 +4,27 @@ metadata:
   name: redis-config
   namespace: chalk-board-namespace
 data:
-  redis-custom.conf: |
+  # This script updates the configuration of each node with its correct hostname
+  update-node.sh: |
+    #!/bin/sh
+    set -ex
+
+    # Get the pod's hostname and ordinal from the environment variables
+    # The sed command replaces the placeholder with the correct hostname
+    # so that the nodes can discover each other.
+    HOSTNAME=$(hostname)
+    sed "s/{{POD_HOSTNAME}}/$HOSTNAME/g" /tmp/redis.conf > /conf/redis.conf
+    exec redis-server /conf/redis.conf
+
+  redis.conf: |
+    cluster-enabled yes
+    cluster-config-file /data/nodes.conf
+    cluster-node-timeout 5000
     appendonly yes
-    maxmemory 256mb
-    maxmemory-policy allkeys-lru
+    protected-mode no
+    bind 0.0.0.0
+    port 6379
+
 #
 #  update-node.sh: |
 #    #!/bin/sh
