@@ -182,7 +182,7 @@ spec:
               mountPath: /etc/redis
           # Direct arguments from your original request
           command: ["redis-server"]
-          args: ["/etc/redis/redis.conf"]
+          args: ["/etc/redis/redis-custom.conf"]
       volumes:
         name: redis-config
         configMap:

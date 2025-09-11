@@ -4,7 +4,7 @@ metadata:
   name: redis-config
   namespace: chalk-board-namespace
 data:
-  redis.conf: |
+  redis-custom.conf: |
     appendonly yes
     maxmemory 256mb
     maxmemory-policy allkeys-lru
