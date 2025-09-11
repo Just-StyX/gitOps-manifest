@@ -12,7 +12,7 @@ spec:
         name: http
         protocol: HTTP
       hosts:
-        - "*"
+        - "gateway-service.chalk-board-namespace.svc.cluster.local"
 
 ---
 # gateway-service virtual service
