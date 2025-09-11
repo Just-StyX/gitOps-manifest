@@ -20,8 +20,9 @@ data:
       logging:
         loglevel: debug
 
-      loki:
-        endpoint: "http://loki:3100/loki/api/v1/push"
+      otlphttp/logs:
+        endpoint: http://loki:3100/otlp
+        logs_endpoint: http://loki:3100/otlp
 
       prometheus:
         endpoint: "0.0.0.0:8889"
@@ -64,4 +65,4 @@ data:
           exporters: [otlp,zipkin,jaeger]
         logs:
           receivers: [otlp]
-          exporters: [loki]
+          exporters: [otlphttp/logs]
