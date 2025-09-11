@@ -21,8 +21,8 @@ spec:
           image: jay717/gateway-service:1.0
           imagePullPolicy: Always
           env:
-#            - name: LOGGING_CONFIG
-#              value: "file:/config/logback-spring.xml"
+            - name: LOGGING_CONFIG
+              value: "file:/config/logback-spring.xml"
             - name: SERVICE_TEAM_GW
               valueFrom:
                 configMapKeyRef:
