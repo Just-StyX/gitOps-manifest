@@ -181,8 +181,8 @@ data:
       level:
         circuitbreaker: info
         org.springframework.cloud.gateway: DEBUG
-      pattern:
-        level: ${LOGGING_LEVEL_PATTERN_GW:"%5p [${spring.application.name},%X{trace_id},%X{span_id}]"}
+      # pattern:
+        # level: ${LOGGING_LEVEL_PATTERN_GW:"%5p [${spring.application.name},%X{trace_id},%X{span_id}]"}
 
     management:
       endpoints:
