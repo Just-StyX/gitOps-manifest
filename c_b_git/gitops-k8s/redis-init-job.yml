@@ -1,26 +1,26 @@
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: redis-cluster-creator
-  namespace: chalk-board-namespace
-spec:
-  template:
-    spec:
-      containers:
-        - name: redis-cluster-creator
-          image: redis:7-alpine
-          command:
-            - "sh"
-            - "-c"
-            - |
-              until [ $(redis-cli -h redis-cluster-0.redis.chalk-board-namespace.svc.cluster.local ping | grep PONG | wc -l) -eq 6 ]; do echo "waiting for redis nodes to be ready..."; sleep 5; done
-              redis-cli --cluster create \
-                redis-cluster-0.redis.chalk-board-namespace.svc.cluster.local:6379 \
-                redis-cluster-1.redis.chalk-board-namespace.svc.cluster.local:6379 \
-                redis-cluster-2.redis.chalk-board-namespace.svc.cluster.local:6379 \
-                redis-cluster-3.redis.chalk-board-namespace.svc.cluster.local:6379 \
-                redis-cluster-4.redis.chalk-board-namespace.svc.cluster.local:6379 \
-                redis-cluster-5.redis.chalk-board-namespace.svc.cluster.local:6379 \
-                --cluster-replicas 1 \
-                --cluster-yes
-      restartPolicy: OnFailure
+#apiVersion: batch/v1
+#kind: Job
+#metadata:
+#  name: redis-cluster-creator
+#  namespace: chalk-board-namespace
+#spec:
+#  template:
+#    spec:
+#      containers:
+#        - name: redis-cluster-creator
+#          image: redis:7-alpine
+#          command:
+#            - "sh"
+#            - "-c"
+#            - |
+#              until [ $(redis-cli -h redis-cluster-0.redis.chalk-board-namespace.svc.cluster.local ping | grep PONG | wc -l) -eq 6 ]; do echo "waiting for redis nodes to be ready..."; sleep 5; done
+#              redis-cli --cluster create \
+#                redis-cluster-0.redis.chalk-board-namespace.svc.cluster.local:6379 \
+#                redis-cluster-1.redis.chalk-board-namespace.svc.cluster.local:6379 \
+#                redis-cluster-2.redis.chalk-board-namespace.svc.cluster.local:6379 \
+#                redis-cluster-3.redis.chalk-board-namespace.svc.cluster.local:6379 \
+#                redis-cluster-4.redis.chalk-board-namespace.svc.cluster.local:6379 \
+#                redis-cluster-5.redis.chalk-board-namespace.svc.cluster.local:6379 \
+#                --cluster-replicas 1 \
+#                --cluster-yes
+#      restartPolicy: OnFailure
