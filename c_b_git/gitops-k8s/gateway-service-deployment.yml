@@ -21,13 +21,6 @@ spec:
           image: jay717/gateway-service:1.0
           imagePullPolicy: Always
           env:
-            - name: BPL_DEBUG_ENABLED
-              valueFrom:
-                configMapKeyRef:
-                  name: chalkboard-shared-config
-                  key: BPL_DEBUG_ENABLED
-            - name: BPL_DEBUG_PORT
-              value: "8002"
             - name: SERVICE_TEAM_GW
               valueFrom:
                 configMapKeyRef:

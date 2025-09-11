@@ -20,10 +20,6 @@ spec:
           image: jay717/ui-service:1.0
           imagePullPolicy: Always
           env:
-            - name: BPL_DEBUG_ENABLED
-              value: "true"
-            - name: BPL_DEBUG_PORT
-              value: "8003"
             - name: LOGGING_CONFIG
               value: "file:/config/logback-spring.xml"
             - name: SERVICE_TEAM_UI

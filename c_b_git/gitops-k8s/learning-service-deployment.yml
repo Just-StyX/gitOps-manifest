@@ -138,14 +138,6 @@ spec:
           image: jay717/learning-service:1.0
           imagePullPolicy: Always
           env:
-            # Inject environment variables from the ConfigMap
-            - name: BPL_DEBUG_ENABLED
-              valueFrom:
-                configMapKeyRef:
-                  name: chalkboard-shared-config
-                  key: BPL_DEBUG_ENABLED
-            - name: BPL_DEBUG_PORT
-              value: "8001"
             - name: LOGGING_CONFIG
               value: "file:/config/logback-spring.xml" # This is correct
             - name: SERVICE_TEAM_LS
