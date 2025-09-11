@@ -18,7 +18,7 @@ spec:
       containers:
         - name: loki
           image: grafana/loki:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 3100
               name: http-metrics
