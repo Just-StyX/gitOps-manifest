@@ -161,13 +161,13 @@ spec:
         app: redis
     spec:
 #      # Optional: Use an initContainer to set correct permissions for the Redis user
-#      initContainers:
-#        - name: init-redis-data-dir
-#          image: busybox:latest
-#          command: ["chown", "-R", "redis:redis", "/data"]
-#          volumeMounts:
-#            - name: redis-data
-#              mountPath: /data
+      initContainers:
+        - name: init-redis-data-dir
+          image: busybox:latest
+          command: ["chown", "-R", "redis:redis", "/data"]
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
       containers:
         - name: redis
           image: redis:7-alpine
