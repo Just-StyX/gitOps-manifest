@@ -17,7 +17,7 @@ data:
                 <timeoutMs>1000</timeoutMs>
             </batch>
             <http>
-                <url>${LOKI_SERVICE_URL:-http://loki}/loki/api/v1/push</url>
+                <url>${LOKI_SERVICE_URL:-http://loki:3100}/loki/api/v1/push</url>
             </http>
             <labels>
                 app = ${application}
