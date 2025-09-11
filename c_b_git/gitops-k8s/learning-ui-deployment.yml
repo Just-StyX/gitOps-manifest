@@ -24,8 +24,8 @@ spec:
               value: "true"
             - name: BPL_DEBUG_PORT
               value: "8003"
-            - name: LOGGING_CONFIG
-              value: "file:/config/logback-spring.xml"
+#            - name: LOGGING_CONFIG
+#              value: "file:/config/logback-spring.xml"
             - name: SERVICE_TEAM_UI
               valueFrom:
                 configMapKeyRef:

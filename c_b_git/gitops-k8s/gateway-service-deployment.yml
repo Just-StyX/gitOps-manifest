@@ -114,8 +114,8 @@ spec:
                   name: chalkboard-shared-config
                   key: KEYCLOAK_REALM
             # Optional: Point to mounted logback config
-            - name: LOGGING_CONFIG
-              value: "file:/config/logback-spring.xml" # Adjust filename as needed
+#            - name: LOGGING_CONFIG
+#              value: "file:/config/logback-spring.xml" # Adjust filename as needed
           ports:
             - containerPort: 8002
               name: debug-port

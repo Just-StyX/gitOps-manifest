@@ -28,8 +28,8 @@ spec:
                   key: BPL_DEBUG_ENABLED
             - name: BPL_DEBUG_PORT
               value: "8001"
-            - name: LOGGING_CONFIG
-              value: "file:/config/logback-spring.xml"
+#            - name: LOGGING_CONFIG
+#              value: "file:/config/logback-spring.xml"
             - name: SERVICE_TEAM_LS
               valueFrom:
                 configMapKeyRef:
