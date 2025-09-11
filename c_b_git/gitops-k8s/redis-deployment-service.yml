@@ -19,10 +19,19 @@ spec:
       initContainers:
         - name: init-redis-data-dir
           image: busybox:latest
-          command: ["sh", "-c", "chown -R 999:999 /data"]
+          command: ["sh", "-c", "chown -R 999:999 /data && chmod 700 /data"]
           volumeMounts:
             - name: data
               mountPath: /data
+        # Init container to copy config to a writable volume
+        - name: copy-conf
+          image: busybox:latest
+          command: ["sh", "-c", "cp /tmp/conf/* /conf-writable/ && chmod 755 /conf-writable/update-node.sh"]
+          volumeMounts:
+            - name: conf-ro
+              mountPath: /tmp/conf
+            - name: conf-rw
+              mountPath: /conf-writable
       containers:
         - name: redis-cluster
           image: redis:7-alpine
@@ -31,28 +40,29 @@ spec:
               name: client
             - containerPort: 16379
               name: gossip
-          command: ["/conf/update-node.sh"]
+          command: ["/conf-writable/update-node.sh"]
           readinessProbe:
             exec:
               command: ["sh", "-c", "redis-cli -h $(hostname) ping"]
             initialDelaySeconds: 15
             periodSeconds: 10
           volumeMounts:
-            - name: conf
+            - name: conf-rw
               mountPath: /conf
             - name: data
               mountPath: /data
       volumes:
-        - name: conf
+        - name: conf-ro
           configMap:
             name: redis-config
-            defaultMode: 0755
+        - name: conf-rw
+          emptyDir: {}
   volumeClaimTemplates:
     - metadata:
         name: data
       spec:
         accessModes: [ "ReadWriteOnce" ]
-        storageClassName: "standard" # Consider using a specific cloud provider class
+        storageClassName: "standard"
         resources:
           requests:
             storage: 1Gi
