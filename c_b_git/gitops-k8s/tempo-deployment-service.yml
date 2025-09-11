@@ -44,14 +44,14 @@ spec:
               subPath: tempo.yml
             - name: tempo-data
               mountPath: /var/tempo
-          readinessProbe:
-            httpGet:
-              path: /api/echo
-              port: 3200
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            timeoutSeconds: 1
-            failureThreshold: 10
+#          readinessProbe:
+#            httpGet:
+#              path: /api/echo
+#              port: 3200
+#            initialDelaySeconds: 5
+#            periodSeconds: 5
+#            timeoutSeconds: 1
+#            failureThreshold: 10
       volumes:
         - name: tempo-config-volume
           configMap:
