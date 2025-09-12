@@ -10,7 +10,7 @@ data:
   CHALK_BOARD_DATABASE_USERNAME: "username"
   KEYCLOAK_DB: "chalk_keycloak"
   KEYCLOAK_USERNAME: "username"
-  KEYCLOAK_REALM: "http://chalk-keycloak/realms/chalk-board"
+  KEYCLOAK_REALM: "http://chalk-keycloak:7080/realms/chalk-board"
   KEYCLOAK_DATABASE_URL: "jdbc:postgresql://postgres/chalk_keycloak"
   AUTH_CLIENT_ID: "gateway-client"
   AUTH_CLIENT_NAME: "JSL - Learning Center"
