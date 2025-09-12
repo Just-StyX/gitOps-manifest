@@ -1,79 +1,79 @@
-apiVersion: networking.istio.io/v1beta1
-kind: Gateway
-metadata:
-  name: chalk-board-ingress-gateway
-  namespace: chalk-board-namespace
-spec:
-  selector:
-    istio: ingressgateway # use istio default controller
-  servers:
-    - port:
-        number: 80
-        name: http
-        protocol: HTTP
-      hosts:
-        - "gateway-service.chalk-board-namespace.svc.cluster.local"
-
----
-# gateway-service virtual service
-
-apiVersion: networking.istio.io/v1beta1
-kind: VirtualService
-metadata:
-  name: gateway-service-virtual-service
-  namespace: chalk-board-namespace
-spec:
-  hosts:
-    - "gateway-service.chalk-board-namespace.svc.cluster.local"
-  gateways: # list of gateway for which virtual service will receive requests from
-    - chalk-board-ingress-gateway
-  http:
-    - route:
-        - destination: # Request will be passed on to this host.
-            host: gateway-service.chalk-board-namespace.svc.cluster.local
-            port:
-              number: 8082
-
----
-# learning-service virtual service
-
-apiVersion: networking.istio.io/v1beta1
-kind: VirtualService
-metadata:
-  name: learning-service-virtual-service
-  namespace: chalk-board-namespace
-spec:
-  hosts:
-    - "learning-service.chalk-board-namespace.svc.cluster.local"
-  http:
-    - route:
-        - destination: # Request will be passed on to this host.
-            host: learning-service.chalk-board-namespace.svc.cluster.local
-            port:
-              number: 8081
-      retries:
-        attempts: 3
-        perTryTimeout: 2s
-        retryOn: 5xx
-
----
-# learning-service virtual service
-
-apiVersion: networking.istio.io/v1beta1
-kind: VirtualService
-metadata:
-  name: learning-ui-virtual-service
-  namespace: chalk-board-namespace
-spec:
-  hosts:
-    - "learning-ui.chalk-board-namespace.svc.cluster.local"
-  http:
-    - route:
-        - destination: # Request will be passed on to this host.
-            host: learning-ui.chalk-board-namespace.svc.cluster.local
-            port:
-              number: 8083
-      retries:
-        attempts: 3
-        perTryTimeout: 2s
-        retryOn: 5xx
+#apiVersion: networking.istio.io/v1beta1
+#kind: Gateway
+#metadata:
+#  name: chalk-board-ingress-gateway
+#  namespace: chalk-board-namespace
+#spec:
+#  selector:
+#    istio: ingressgateway # use istio default controller
+#  servers:
+#    - port:
+#        number: 80
+#        name: http
+#        protocol: HTTP
+#      hosts:
+#        - "gateway-service.chalk-board-namespace.svc.cluster.local"
+#
+#---
+## gateway-service virtual service
+#
+#apiVersion: networking.istio.io/v1beta1
+#kind: VirtualService
+#metadata:
+#  name: gateway-service-virtual-service
+#  namespace: chalk-board-namespace
+#spec:
+#  hosts:
+#    - "gateway-service.chalk-board-namespace.svc.cluster.local"
+#  gateways: # list of gateway for which virtual service will receive requests from
+#    - chalk-board-ingress-gateway
+#  http:
+#    - route:
+#        - destination: # Request will be passed on to this host.
+#            host: gateway-service.chalk-board-namespace.svc.cluster.local
+#            port:
+#              number: 8082
+#
+#---
+## learning-service virtual service
+#
+#apiVersion: networking.istio.io/v1beta1
+#kind: VirtualService
+#metadata:
+#  name: learning-service-virtual-service
+#  namespace: chalk-board-namespace
+#spec:
+#  hosts:
+#    - "learning-service.chalk-board-namespace.svc.cluster.local"
+#  http:
+#    - route:
+#        - destination: # Request will be passed on to this host.
+#            host: learning-service.chalk-board-namespace.svc.cluster.local
+#            port:
+#              number: 8081
+#      retries:
+#        attempts: 3
+#        perTryTimeout: 2s
+#        retryOn: 5xx
+#
+#---
+## learning-service virtual service
+#
+#apiVersion: networking.istio.io/v1beta1
+#kind: VirtualService
+#metadata:
+#  name: learning-ui-virtual-service
+#  namespace: chalk-board-namespace
+#spec:
+#  hosts:
+#    - "learning-ui.chalk-board-namespace.svc.cluster.local"
+#  http:
+#    - route:
+#        - destination: # Request will be passed on to this host.
+#            host: learning-ui.chalk-board-namespace.svc.cluster.local
+#            port:
+#              number: 8083
+#      retries:
+#        attempts: 3
+#        perTryTimeout: 2s
+#        retryOn: 5xx
