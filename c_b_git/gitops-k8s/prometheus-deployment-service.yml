@@ -28,13 +28,6 @@ spec:
               subPath: prometheus.yml
             - name: prometheus-data
               mountPath: /prometheus
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "250m"
-            limits:
-              memory: "1Gi"
-              cpu: "500m"
           args:
             - '--config.file=/etc/prometheus/prometheus.yml'
             - '--storage.tsdb.path=/prometheus'
@@ -50,8 +43,7 @@ spec:
           configMap:
             name: prometheus-config
         - name: prometheus-data
-          persistentVolumeClaim:
-            claimName: prometheus-pvc
+          emptyDir: { }
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

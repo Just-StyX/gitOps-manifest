@@ -78,7 +78,7 @@ spec:
   resources:
     requests:
       storage: 5Gi
-    storageClassName: standard  # Commented out to use default storage class
+  # storageClassName: standard  # Commented out to use default storage class
 ---
 apiVersion: v1
 kind: Service

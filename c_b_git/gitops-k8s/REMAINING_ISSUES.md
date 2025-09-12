@@ -1,24 +1,22 @@
 # Remaining Issues to Address
 
-## ✅ COMPLETED FIXES (See OBSERVABILITY_FIXES_COMPLETED.md for details)
-
-### 1. Observability Stack Configurations - FIXED ✅
-~~The following files reference observability services that don't have deployment manifests~~
-**COMPLETED**: All observability stack configurations have been reviewed and fixed:
-- ✅ `grafana-configuration.yml` and `grafana-deployment-service.yml` - Fixed datasource URLs
-- ✅ `prometheus-configuration.yml` and `prometheus-deployment-service.yml` - Fixed storage and removed missing dependencies
-- ✅ `loki-configuration.yml` and `loki-deployment-service.yml` - Fixed storage paths and added PVC
-- ✅ `tempo-configuration.yml` and `tempo-deployment-service.yml` - Fixed endpoints and cleaned up config
-- ✅ `otel-collector-configuration.yml` and `otel-collector-deployment-service.yml` - Added health checks
-- ✅ `jaeger-deployment-service.yml` - Already working correctly
-- ✅ `zipkin-deployment-service.yml` - Already working correctly
-
-### 2. Service Name Inconsistencies - PARTIALLY FIXED ✅
-- ✅ **Observability Stack**: Fixed all service name references in observability configurations
-- ❌ ConfigMap references `redis-service` but the actual service should be named `redis-service` (update the fixed Redis deployment)
-- ❌ Some references to `learning-ui-service` should be `learning-ui`
-
 ## High Priority Issues
+
+### 1. Missing Observability Stack Configurations
+The following files reference observability services that don't have deployment manifests:
+- `grafana-configuration.yml` and `grafana-deployment-service.yml`
+- `prometheus-configuration.yml` and `prometheus-deployment-service.yml` 
+- `loki-configuration.yml` and `loki-deployment-service.yml`
+- `tempo-configuration.yml` and `tempo-deployment-service.yml`
+- `otel-collector-configuration.yml` and `otel-collector-deployment-service.yml`
+- `jaeger-deployment-service.yml`
+- `zipkin-deployment-service.yml`
+
+**Action**: Review and validate these observability stack configurations.
+
+### 2. Service Name Inconsistencies
+- ConfigMap references `redis-service` but the actual service should be named `redis-service` (update the fixed Redis deployment)
+- Some references to `learning-ui-service` should be `learning-ui`
 
 ### 3. Redis Configuration Mismatch
 The current `redis-configuration.yml` is for cluster mode but we're using single instance.

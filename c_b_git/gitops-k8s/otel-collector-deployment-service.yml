@@ -34,25 +34,6 @@ spec:
             - name: otel-collector-config-volume
               mountPath: /etc/otelcol-contrib/otel-collector.yml
               subPath: otel-collector.yml
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 13133
-            initialDelaySeconds: 10
-            periodSeconds: 5
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 13133
-            initialDelaySeconds: 15
-            periodSeconds: 10
-          resources:
-            requests:
-              memory: "256Mi"
-              cpu: "100m"
-            limits:
-              memory: "512Mi"
-              cpu: "250m"
       volumes:
         - name: otel-collector-config-volume
           configMap:

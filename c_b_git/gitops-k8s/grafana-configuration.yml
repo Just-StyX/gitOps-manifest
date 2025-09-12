@@ -10,19 +10,19 @@ data:
       - name: prometheus
         type: prometheus
         access: proxy
-        url: http://prometheus:9090 # Use correct service name
+        url: http://prometheus-service:9090 # Use service name
         isDefault: true
         editable: false
       - name: loki
         type: loki
         access: proxy
-        url: http://loki:3100 # Use correct service name
+        url: http://loki-service:3100 # Use service name
         isDefault: false
       - name: Tempo
         type: tempo
         access: proxy
         orgId: 1
-        url: http://tempo:3200 # Use correct service name
+        url: http://tempo-service:3200 # Use service name
         basicAuth: false
         version: 1
         isDefault: false
