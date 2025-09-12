@@ -133,7 +133,7 @@ data:
         oauth2:
           resourceserver:
             jwt:
-              issuer-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI:http://chalk-keycloak:7080/realms/chalk-board}
+              issuer-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI:-http://chalk-keycloak:7080/realms/chalk-board}
           client:
             registration:
               keycloak:
@@ -146,7 +146,7 @@ data:
                 redirect-uri: ${AUTH_CLIENT_REDIRECT_URI}
             provider:
               keycloak:
-                issuer-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI:http://chalk-keycloak:7080/realms/chalk-board}
+                issuer-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI:-http://chalk-keycloak:7080/realms/chalk-board}
     resilience4j:
       circuitbreaker:
         configs:

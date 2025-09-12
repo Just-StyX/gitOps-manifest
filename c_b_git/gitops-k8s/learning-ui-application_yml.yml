@@ -25,7 +25,7 @@ data:
                 scope: openid,profile,email,roles
             provider:
               keycloak:
-                issuer-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI:http://chalk-keycloak:7080/realms/chalk-board}
+                issuer-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI:-http://chalk-keycloak:7080/realms/chalk-board}
 
     server:
       port: 8083
