@@ -30,7 +30,7 @@ data:
         oauth2:
           resourceserver:
             jwt:
-              issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI:http://chalk-keycloak:7080/realms/chalk-board}
+              issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI:-http://chalk-keycloak:7080/realms/chalk-board}
     
     server:
       port: 8081
