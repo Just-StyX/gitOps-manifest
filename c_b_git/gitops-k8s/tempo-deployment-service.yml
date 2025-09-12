@@ -65,20 +65,20 @@ spec:
             name: tempo-config
         - name: tempo-data
           # This is the correct way to reference the PVC
-#          persistentVolumeClaim:
-#            claimName: tempo-pvc
-#---
-#apiVersion: v1
-#kind: PersistentVolumeClaim
-#metadata:
-#  name: tempo-pvc
-#  namespace: chalk-board-namespace
-#spec:
-#  accessModes: ["ReadWriteOnce"]
-#  resources:
-#    requests:
-#      storage: 5Gi
-#    storageClassName: standard  # Commented out to use default storage class
+          persistentVolumeClaim:
+            claimName: tempo-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tempo-pvc
+  namespace: chalk-board-namespace
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 5Gi
+    storageClassName: standard  # Commented out to use default storage class
 ---
 apiVersion: v1
 kind: Service
