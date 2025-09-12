@@ -15,16 +15,17 @@ spec:
       labels:
         app: tempo
     spec:
-      # Use a security context to set the correct UID and GID for Tempo.
-      # The user ID 10001 is the default for Grafana products.
       securityContext:
         fsGroup: 10001
       containers:
         - name: tempo
           image: grafana/tempo:latest
-          imagePullPolicy: IfNotPresent
-          # Pass arguments via args field
-          args: ["-config.file=/etc/tempo.yml"]
+          imagePullPolicy: Always
+          command:
+            - "/tempo"
+          args:
+            - "-config.file=/etc/tempo.yml"
+            - "-target=all" # Explicitly run in monolithic mode
           ports:
             - containerPort: 14268
               name: jaeger-http
@@ -53,7 +54,7 @@ spec:
               cpu: "500m"
           readinessProbe:
             httpGet:
-              path: /api/echo
+              path: /ready
               port: 3200
             initialDelaySeconds: 5
             periodSeconds: 5
@@ -64,7 +65,6 @@ spec:
           configMap:
             name: tempo-config
         - name: tempo-data
-          # This is the correct way to reference the PVC
           persistentVolumeClaim:
             claimName: tempo-pvc
 ---
@@ -78,7 +78,7 @@ spec:
   resources:
     requests:
       storage: 5Gi
-  # storageClassName: standard  # Commented out to use default storage class
+  # storageClassName: standard # Commented out to use default storage class
 ---
 apiVersion: v1
 kind: Service
@@ -117,3 +117,123 @@ spec:
   selector:
     app: tempo
 
+
+#apiVersion: apps/v1
+#kind: Deployment
+#metadata:
+#  name: tempo
+#  namespace: chalk-board-namespace
+#  labels:
+#    app: tempo
+#spec:
+#  replicas: 1
+#  selector:
+#    matchLabels:
+#      app: tempo
+#  template:
+#    metadata:
+#      labels:
+#        app: tempo
+#    spec:
+#      # Use a security context to set the correct UID and GID for Tempo.
+#      # The user ID 10001 is the default for Grafana products.
+#      securityContext:
+#        fsGroup: 10001
+#      containers:
+#        - name: tempo
+#          image: grafana/tempo:latest
+#          imagePullPolicy: IfNotPresent
+#          # Pass arguments via args field
+#          args: ["-config.file=/etc/tempo.yml"]
+#          ports:
+#            - containerPort: 14268
+#              name: jaeger-http
+#            - containerPort: 3200
+#              name: tempo-http
+#            - containerPort: 9095
+#              name: grpc-storage
+#            - containerPort: 4317
+#              name: otlp-grpc
+#            - containerPort: 4318
+#              name: otlp-http
+#            - containerPort: 9411
+#              name: zipkin
+#          volumeMounts:
+#            - name: tempo-config-volume
+#              mountPath: /etc/tempo.yml
+#              subPath: tempo.yml
+#            - name: tempo-data
+#              mountPath: /var/tempo
+#          resources:
+#            requests:
+#              memory: "512Mi"
+#              cpu: "250m"
+#            limits:
+#              memory: "1Gi"
+#              cpu: "500m"
+#          readinessProbe:
+#            httpGet:
+#              path: /api/echo
+#              port: 3200
+#            initialDelaySeconds: 5
+#            periodSeconds: 5
+#            timeoutSeconds: 1
+#            failureThreshold: 10
+#      volumes:
+#        - name: tempo-config-volume
+#          configMap:
+#            name: tempo-config
+#        - name: tempo-data
+#          # This is the correct way to reference the PVC
+#          persistentVolumeClaim:
+#            claimName: tempo-pvc
+#---
+#apiVersion: v1
+#kind: PersistentVolumeClaim
+#metadata:
+#  name: tempo-pvc
+#  namespace: chalk-board-namespace
+#spec:
+#  accessModes: ["ReadWriteOnce"]
+#  resources:
+#    requests:
+#      storage: 5Gi
+#  # storageClassName: standard  # Commented out to use default storage class
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: tempo
+#  namespace: chalk-board-namespace
+#  labels:
+#    app: tempo
+#spec:
+#  type: ClusterIP
+#  ports:
+#    - name: jaeger-http
+#      protocol: TCP
+#      port: 14268
+#      targetPort: 14268
+#    - name: tempo-http
+#      protocol: TCP
+#      port: 3200
+#      targetPort: 3200
+#    - name: grpc-storage
+#      protocol: TCP
+#      port: 9095
+#      targetPort: 9095
+#    - name: otlp-grpc
+#      protocol: TCP
+#      port: 4317
+#      targetPort: 4317
+#    - name: otlp-http
+#      protocol: TCP
+#      port: 4318
+#      targetPort: 4318
+#    - name: zipkin
+#      protocol: TCP
+#      port: 9411
+#      targetPort: 9411
+#  selector:
+#    app: tempo
+#
