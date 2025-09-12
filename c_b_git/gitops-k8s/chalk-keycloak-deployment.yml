@@ -81,5 +81,5 @@ spec:
     app: chalk-keycloak
   ports:
     - protocol: TCP
-      port: 7080
+      port: 80
       targetPort: 7080
