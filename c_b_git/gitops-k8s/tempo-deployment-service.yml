@@ -52,14 +52,14 @@ spec:
 #            limits:
 #              memory: "1Gi"
 #              cpu: "500m"
-          readinessProbe:
-            httpGet:
-              path: /ready
-              port: 3200
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            timeoutSeconds: 1
-            failureThreshold: 10
+#          readinessProbe:
+#            httpGet:
+#              path: /ready
+#              port: 3200
+#            initialDelaySeconds: 5
+#            periodSeconds: 5
+#            timeoutSeconds: 1
+#            failureThreshold: 10
       volumes:
         - name: tempo-config-volume
           configMap:
