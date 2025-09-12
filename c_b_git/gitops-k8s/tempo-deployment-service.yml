@@ -20,7 +20,7 @@ spec:
       containers:
         - name: tempo
           # It is best practice to use a specific version instead of 'latest'
-          image: grafana/tempo:2.9.2
+          image: grafana/tempo:latest
           imagePullPolicy: Always
           command:
             - "/tempo"
