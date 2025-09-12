@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,35 +16,63 @@ spec:
       labels:
         app: loki
     spec:
+      securityContext:
+        # Use a security context to set the correct UID and GID for Loki.
+        # The user ID 10001 is the default for Grafana products.
+        fsGroup: 10001
       containers:
         - name: loki
-          image: grafana/loki:latest
-          imagePullPolicy: Always
+          # It is best practice to use a specific version instead of 'latest'
+          image: grafana/loki:2.9.2
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3100
               name: http-metrics
           command:
             - "/usr/bin/loki"
+          args:
             - "-config.file=/etc/loki/local-config.yaml"
+            - "-target=all" # Explicitly run in monolithic mode
           volumeMounts:
             - name: loki-config-volume
               mountPath: /etc/loki
+            - name: loki-data
+              mountPath: /loki
           readinessProbe:
-            exec:
-              command:
-                - wget
-                - --quiet
-                - --tries=1
-                - --output-document=-
-                - http://localhost:3100/ready
+            # Use a standard HTTP GET probe instead of wget
+            httpGet:
+              path: /ready
+              port: http-metrics
             initialDelaySeconds: 5
             periodSeconds: 5
             timeoutSeconds: 1
             failureThreshold: 10
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
       volumes:
         - name: loki-config-volume
           configMap:
             name: loki-config
+        - name: loki-data
+          persistentVolumeClaim:
+            claimName: loki-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: loki-pvc
+  namespace: chalk-board-namespace
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi # Adjust storage size as needed
 ---
 apiVersion: v1
 kind: Service
