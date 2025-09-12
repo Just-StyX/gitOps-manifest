@@ -45,13 +45,13 @@ spec:
               subPath: tempo.yml
             - name: tempo-data
               mountPath: /var/tempo
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "250m"
-            limits:
-              memory: "1Gi"
-              cpu: "500m"
+#          resources:
+#            requests:
+#              memory: "512Mi"
+#              cpu: "250m"
+#            limits:
+#              memory: "1Gi"
+#              cpu: "500m"
           readinessProbe:
             httpGet:
               path: /ready
